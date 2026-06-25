@@ -26,9 +26,16 @@
  *   P  Last Updated
  */
 
-import { google } from "googleapis";
 import type { Guest, GuestStatus, RegistrationInput, ScanLog } from "./types";
 import { TOTAL_FLOORS } from "./stations";
+
+/*
+ * Transport note:
+ * We talk to the Google Sheets REST API directly with `fetch`, and sign the
+ * service-account JWT with Web Crypto (crypto.subtle). We deliberately avoid
+ * the `googleapis` SDK because its HTTP layer (gaxios) is not compatible with
+ * the Cloudflare Workers runtime. This approach runs on both Node and Workers.
+ */
 
 // --- Sheet tab names. Change these if you renamed your tabs. ---
 const GUESTS_TAB = "Guests";
@@ -40,40 +47,163 @@ const COMPLETED_VALUE = "Completed";
 // Total number of columns in the Guests tab (A..P = 16).
 const GUEST_COLUMNS = 16;
 
-/**
- * Build an authenticated Google Sheets client using the service account
- * credentials from environment variables.
- *
- * We create a fresh client per request. This is simple and safe for an
- * event-sized workload.
- */
-function getSheetsClient() {
-  const email = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
-  // The private key is stored with literal "\n" in the env var, so we
-  // convert those back into real newlines here.
-  const key = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n");
-
-  if (!email || !key) {
-    throw new Error(
-      "Missing Google credentials. Check GOOGLE_SERVICE_ACCOUNT_EMAIL and GOOGLE_PRIVATE_KEY in .env.local"
-    );
-  }
-
-  const auth = new google.auth.JWT({
-    email,
-    key,
-    scopes: ["https://www.googleapis.com/auth/spreadsheets"],
-  });
-
-  return google.sheets({ version: "v4", auth });
-}
-
 function getSheetId(): string {
   const id = process.env.GOOGLE_SHEET_ID;
   if (!id) {
     throw new Error("Missing GOOGLE_SHEET_ID in .env.local");
   }
   return id;
+}
+
+// --- Service-account auth (Web Crypto, Workers-compatible) ---------------
+
+const TOKEN_ENDPOINT = "https://oauth2.googleapis.com/token";
+const SHEETS_BASE = "https://sheets.googleapis.com/v4/spreadsheets";
+const SCOPE = "https://www.googleapis.com/auth/spreadsheets";
+
+// Cache the access token between calls within an isolate to avoid re-signing
+// on every Sheets request. Tokens are valid for ~1 hour.
+let cachedToken: { token: string; expiresAt: number } | null = null;
+
+function base64urlFromBytes(bytes: Uint8Array): string {
+  let binary = "";
+  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+function base64urlFromString(str: string): string {
+  return base64urlFromBytes(new TextEncoder().encode(str));
+}
+
+/** Decode a PEM (PKCS#8) private key into the raw bytes Web Crypto expects. */
+function pemToArrayBuffer(pem: string): ArrayBuffer {
+  const body = pem
+    .replace(/-----BEGIN [^-]+-----/, "")
+    .replace(/-----END [^-]+-----/, "")
+    .replace(/\s+/g, "");
+  const binary = atob(body);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return bytes.buffer;
+}
+
+/**
+ * Build, sign, and exchange a service-account JWT for an OAuth access token.
+ * Uses crypto.subtle (available on both Node 18+ and Cloudflare Workers).
+ */
+async function getAccessToken(): Promise<string> {
+  const now = Math.floor(Date.now() / 1000);
+  if (cachedToken && cachedToken.expiresAt > now + 60) {
+    return cachedToken.token;
+  }
+
+  const email = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
+  // The private key is stored with literal "\n" in the env var, so we
+  // convert those back into real newlines here.
+  const pem = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n");
+  if (!email || !pem) {
+    throw new Error(
+      "Missing Google credentials. Check GOOGLE_SERVICE_ACCOUNT_EMAIL and GOOGLE_PRIVATE_KEY."
+    );
+  }
+
+  const header = { alg: "RS256", typ: "JWT" };
+  const claim = {
+    iss: email,
+    scope: SCOPE,
+    aud: TOKEN_ENDPOINT,
+    iat: now,
+    exp: now + 3600,
+  };
+  const signingInput = `${base64urlFromString(JSON.stringify(header))}.${base64urlFromString(
+    JSON.stringify(claim)
+  )}`;
+
+  const key = await crypto.subtle.importKey(
+    "pkcs8",
+    pemToArrayBuffer(pem),
+    { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+  const signature = await crypto.subtle.sign(
+    "RSASSA-PKCS1-v1_5",
+    key,
+    new TextEncoder().encode(signingInput)
+  );
+  const assertion = `${signingInput}.${base64urlFromBytes(new Uint8Array(signature))}`;
+
+  const res = await fetch(TOKEN_ENDPOINT, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
+      assertion,
+    }),
+  });
+  if (!res.ok) {
+    throw new Error(`Google token request failed (${res.status}): ${await res.text()}`);
+  }
+  const data = (await res.json()) as { access_token: string; expires_in?: number };
+  cachedToken = {
+    token: data.access_token,
+    expiresAt: now + (data.expires_in ?? 3600),
+  };
+  return data.access_token;
+}
+
+// --- Sheets REST helpers (replace googleapis client methods) -------------
+
+/** GET a range and return its 2D array of cell values (empty if none). */
+async function valuesGet(range: string): Promise<string[][]> {
+  const token = await getAccessToken();
+  const url = `${SHEETS_BASE}/${getSheetId()}/values/${encodeURIComponent(range)}`;
+  const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+  if (!res.ok) {
+    throw new Error(`Sheets get failed (${res.status}): ${await res.text()}`);
+  }
+  const data = (await res.json()) as { values?: string[][] };
+  return data.values ?? [];
+}
+
+/** Append rows to a range (equivalent to values.append). */
+async function valuesAppend(
+  range: string,
+  values: string[][],
+  valueInputOption = "USER_ENTERED"
+): Promise<void> {
+  const token = await getAccessToken();
+  const url = `${SHEETS_BASE}/${getSheetId()}/values/${encodeURIComponent(
+    range
+  )}:append?valueInputOption=${valueInputOption}`;
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ values }),
+  });
+  if (!res.ok) {
+    throw new Error(`Sheets append failed (${res.status}): ${await res.text()}`);
+  }
+}
+
+/** Overwrite a range (equivalent to values.update). */
+async function valuesUpdate(
+  range: string,
+  values: string[][],
+  valueInputOption = "USER_ENTERED"
+): Promise<void> {
+  const token = await getAccessToken();
+  const url = `${SHEETS_BASE}/${getSheetId()}/values/${encodeURIComponent(
+    range
+  )}?valueInputOption=${valueInputOption}`;
+  const res = await fetch(url, {
+    method: "PUT",
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ values }),
+  });
+  if (!res.ok) {
+    throw new Error(`Sheets update failed (${res.status}): ${await res.text()}`);
+  }
 }
 
 /**
@@ -111,13 +241,7 @@ function rowToGuest(row: string[]): Guest {
  * Row 1 is the header, so we start reading from row 2.
  */
 export async function getAllGuests(): Promise<Guest[]> {
-  const sheets = getSheetsClient();
-  const res = await sheets.spreadsheets.values.get({
-    spreadsheetId: getSheetId(),
-    range: `${GUESTS_TAB}!A2:P`,
-  });
-
-  const rows = res.data.values || [];
+  const rows = await valuesGet(`${GUESTS_TAB}!A2:P`);
   // Skip fully empty rows.
   return rows.filter((r) => r[0]).map((r) => rowToGuest(r as string[]));
 }
@@ -130,13 +254,7 @@ export async function getAllGuests(): Promise<Guest[]> {
 export async function findGuestRow(
   passportId: string
 ): Promise<{ guest: Guest; rowNumber: number } | null> {
-  const sheets = getSheetsClient();
-  const res = await sheets.spreadsheets.values.get({
-    spreadsheetId: getSheetId(),
-    range: `${GUESTS_TAB}!A2:P`,
-  });
-
-  const rows = res.data.values || [];
+  const rows = await valuesGet(`${GUESTS_TAB}!A2:P`);
   for (let i = 0; i < rows.length; i++) {
     if ((rows[i][0] || "").trim() === passportId.trim()) {
       // +2 because: arrays are 0-based AND we skipped the header row.
@@ -174,7 +292,6 @@ export async function generateNextPassportId(): Promise<string> {
 export async function appendGuest(
   input: RegistrationInput
 ): Promise<Guest> {
-  const sheets = getSheetsClient();
   const passportId = await generateNextPassportId();
   const now = new Date().toISOString();
   const passportLink = `/passport/${passportId}`;
@@ -199,12 +316,7 @@ export async function appendGuest(
     now, // P Last Updated
   ];
 
-  await sheets.spreadsheets.values.append({
-    spreadsheetId: getSheetId(),
-    range: `${GUESTS_TAB}!A:P`,
-    valueInputOption: "USER_ENTERED",
-    requestBody: { values: [row] },
-  });
+  await valuesAppend(`${GUESTS_TAB}!A:P`, [row]);
 
   return {
     passportId,
@@ -253,7 +365,6 @@ export async function stampFloor(
     return { ok: false, reason: "already_completed", guest };
   }
 
-  const sheets = getSheetsClient();
   const now = new Date().toISOString();
 
   // Floor columns start at H (index 7). Floor 1 -> column H, Floor 2 -> I, etc.
@@ -261,12 +372,9 @@ export async function stampFloor(
   const floorColumnLetter = String.fromCharCode("H".charCodeAt(0) + floorIndex);
 
   // Update the floor cell to "Completed".
-  await sheets.spreadsheets.values.update({
-    spreadsheetId: getSheetId(),
-    range: `${GUESTS_TAB}!${floorColumnLetter}${rowNumber}`,
-    valueInputOption: "USER_ENTERED",
-    requestBody: { values: [[COMPLETED_VALUE]] },
-  });
+  await valuesUpdate(`${GUESTS_TAB}!${floorColumnLetter}${rowNumber}`, [
+    [COMPLETED_VALUE],
+  ]);
 
   // Recompute progress.
   const newFloors = [...guest.floors];
@@ -283,15 +391,10 @@ export async function stampFloor(
       : "Incomplete";
 
   // Update Completed Count (M), Status (N), and Last Updated (P).
-  await sheets.spreadsheets.values.update({
-    spreadsheetId: getSheetId(),
-    range: `${GUESTS_TAB}!M${rowNumber}:P${rowNumber}`,
-    valueInputOption: "USER_ENTERED",
-    requestBody: {
-      // M Completed Count | N Status | O Registered At (unchanged) | P Last Updated
-      values: [[String(completedCount), newStatus, guest.registeredAt, now]],
-    },
-  });
+  // M Completed Count | N Status | O Registered At (unchanged) | P Last Updated
+  await valuesUpdate(`${GUESTS_TAB}!M${rowNumber}:P${rowNumber}`, [
+    [String(completedCount), newStatus, guest.registeredAt, now],
+  ]);
 
   return {
     ok: true,
@@ -323,17 +426,11 @@ export async function claimReward(
     return { ok: false, reason: "not_completed" };
   }
 
-  const sheets = getSheetsClient();
   const now = new Date().toISOString();
 
-  await sheets.spreadsheets.values.update({
-    spreadsheetId: getSheetId(),
-    range: `${GUESTS_TAB}!N${rowNumber}:P${rowNumber}`,
-    valueInputOption: "USER_ENTERED",
-    requestBody: {
-      values: [["Reward Claimed", guest.registeredAt, now]],
-    },
-  });
+  await valuesUpdate(`${GUESTS_TAB}!N${rowNumber}:P${rowNumber}`, [
+    ["Reward Claimed", guest.registeredAt, now],
+  ]);
 
   return {
     ok: true,
@@ -346,22 +443,14 @@ export async function claimReward(
  * scan/stamp action.
  */
 export async function appendScanLog(log: ScanLog): Promise<void> {
-  const sheets = getSheetsClient();
-  await sheets.spreadsheets.values.append({
-    spreadsheetId: getSheetId(),
-    range: `${SCAN_LOGS_TAB}!A:F`,
-    valueInputOption: "USER_ENTERED",
-    requestBody: {
-      values: [
-        [
-          log.timestamp,
-          log.passportId,
-          log.guestName,
-          log.station,
-          log.action,
-          log.scannerPage,
-        ],
-      ],
-    },
-  });
+  await valuesAppend(`${SCAN_LOGS_TAB}!A:F`, [
+    [
+      log.timestamp,
+      log.passportId,
+      log.guestName,
+      log.station,
+      log.action,
+      log.scannerPage,
+    ],
+  ]);
 }

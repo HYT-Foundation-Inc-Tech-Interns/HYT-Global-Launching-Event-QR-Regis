@@ -18,9 +18,10 @@ export const dynamic = "force-dynamic";
 export default async function PassportPage({
   params,
 }: {
-  params: { passportId: string };
+  params: Promise<{ passportId: string }>;
 }) {
-  const guest = await getGuestById(params.passportId);
+  const { passportId } = await params;
+  const guest = await getGuestById(passportId);
 
   if (!guest) {
     return (
@@ -33,7 +34,7 @@ export default async function PassportPage({
           </h1>
           <p className="mt-2 text-slate-500">
             We couldn&apos;t find a passport with ID{" "}
-            <span className="font-mono">{params.passportId}</span>.
+            <span className="font-mono">{passportId}</span>.
           </p>
           <Link
             href="/register"

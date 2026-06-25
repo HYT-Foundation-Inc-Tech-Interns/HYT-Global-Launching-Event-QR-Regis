@@ -12,10 +12,11 @@ export const dynamic = "force-dynamic";
 
 export async function GET(
   _request: NextRequest,
-  { params }: { params: { passportId: string } }
+  { params }: { params: Promise<{ passportId: string }> }
 ) {
   try {
-    const guest = await getGuestById(params.passportId);
+    const { passportId } = await params;
+    const guest = await getGuestById(passportId);
 
     if (!guest) {
       return NextResponse.json(
