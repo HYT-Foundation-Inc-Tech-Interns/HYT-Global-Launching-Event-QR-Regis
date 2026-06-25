@@ -1,19 +1,21 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
 
 /* Smooth, event-style base styles. */
 :root {
-  --font-sans: "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-sans: "Poppins", system-ui, -apple-system, sans-serif;
 }
 
 body {
+  font-family: var(--font-sans);
   @apply bg-slate-50 text-slate-800 antialiased;
 }
 
 /* A reusable gradient used on headers and the passport card. */
 .brand-gradient {
-  background-image: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+  background-image: linear-gradient(135deg, #0C005B 0%, #0C005B 100%);
 }
 
 /* Make the QR scanner video fill its container nicely. */

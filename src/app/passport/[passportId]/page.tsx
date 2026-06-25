@@ -38,7 +38,7 @@ export default async function PassportPage({
           </p>
           <Link
             href="/register"
-            className="mt-6 inline-block rounded-xl bg-brand-blue px-5 py-3 font-semibold text-white"
+            className="mt-6 inline-block rounded-xl bg-[#0C005B] px-5 py-3 font-semibold text-white hover:bg-[#080046]"
           >
             Register Now
           </Link>

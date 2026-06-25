@@ -97,7 +97,7 @@ export default function PassportCard({ guest }: { guest: Guest }) {
       {/* Download button (outside the captured card so it isn't in the image) */}
       <button
         onClick={handleDownload}
-        className="mt-4 w-full rounded-xl bg-brand-purple px-4 py-3 font-semibold text-white shadow transition hover:bg-purple-700"
+        className="mt-4 w-full rounded-xl bg-[#0C005B] px-4 py-3 font-semibold text-white shadow transition hover:bg-[#080046]"
       >
         ⬇ Download / Save Passport as Image
       </button>

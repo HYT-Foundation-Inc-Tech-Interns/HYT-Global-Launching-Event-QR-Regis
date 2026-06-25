@@ -24,7 +24,6 @@ export const STATIONS: Station[] = [
     floor: 1,
     name: "Registration / Welcome Station",
     activity: "Check-in & Welcome",
-    icon: "🎫",
     scannerLink: "/admin/scan/floor-1",
   },
   {
@@ -32,7 +31,6 @@ export const STATIONS: Station[] = [
     floor: 2,
     name: "Food & Beverage Experience",
     activity: "Tasting & Service Demo",
-    icon: "🍽️",
     scannerLink: "/admin/scan/floor-2",
   },
   {
@@ -40,7 +38,6 @@ export const STATIONS: Station[] = [
     floor: 3,
     name: "Housekeeping Professional Room",
     activity: "Housekeeping Skills",
-    icon: "🛎️",
     scannerLink: "/admin/scan/floor-3",
   },
   {
@@ -48,7 +45,6 @@ export const STATIONS: Station[] = [
     floor: 4,
     name: "Events Management Room",
     activity: "Event Planning Challenge",
-    icon: "🎉",
     scannerLink: "/admin/scan/floor-4",
   },
   {
@@ -56,7 +52,6 @@ export const STATIONS: Station[] = [
     floor: 5,
     name: "Computer Servicing / Contact Center Simulation",
     activity: "Tech & Support Simulation",
-    icon: "💻",
     scannerLink: "/admin/scan/floor-5",
   },
 ];

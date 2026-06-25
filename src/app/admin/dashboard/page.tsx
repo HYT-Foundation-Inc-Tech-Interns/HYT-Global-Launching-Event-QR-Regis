@@ -88,7 +88,7 @@ export default function AdminDashboard() {
           <h1 className="text-2xl font-bold text-slate-800">Admin Dashboard</h1>
           <button
             onClick={load}
-            className="rounded-lg bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-200"
+            className="rounded-lg bg-[#0C005B] px-4 py-2 text-sm font-medium text-white hover:bg-[#080046]"
           >
             ⟳ Refresh
           </button>

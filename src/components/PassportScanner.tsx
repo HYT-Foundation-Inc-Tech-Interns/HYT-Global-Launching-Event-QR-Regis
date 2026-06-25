@@ -86,7 +86,7 @@ export default function PassportScanner({ passportId }: { passportId: string }) 
           <button
             onClick={startScan}
             disabled={busy}
-            className="w-full rounded-xl bg-brand-blue px-4 py-4 text-lg font-bold text-white shadow transition hover:bg-blue-700 disabled:opacity-60"
+            className="w-full rounded-xl bg-[#0C005B] px-4 py-4 text-lg font-bold text-white shadow transition hover:bg-[#080046] disabled:opacity-60"
           >
             {busy ? "Saving..." : "📷 Scan Station QR"}
           </button>
@@ -101,7 +101,7 @@ export default function PassportScanner({ passportId }: { passportId: string }) 
           <QrScanner key={scanKey} onScan={handleScan} onError={setError} />
           <button
             onClick={() => setOpen(false)}
-            className="mt-3 w-full rounded-xl bg-slate-100 px-4 py-2 font-semibold text-slate-700 hover:bg-slate-200"
+            className="mt-3 w-full rounded-xl bg-[#0C005B] px-4 py-2 font-semibold text-white hover:bg-[#080046]"
           >
             Cancel
           </button>

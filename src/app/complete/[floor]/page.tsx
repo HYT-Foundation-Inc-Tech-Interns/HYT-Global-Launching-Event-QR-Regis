@@ -149,7 +149,7 @@ export default function CompletePage() {
               )}
               <Link
                 href={`/passport/${encodeURIComponent(passportId)}`}
-                className="mt-5 inline-block w-full rounded-xl bg-brand-purple px-4 py-3 font-semibold text-white"
+                className="mt-5 inline-block w-full rounded-xl bg-[#0C005B] px-4 py-3 font-semibold text-white hover:bg-[#080046]"
               >
                 View My Passport
               </Link>
@@ -177,7 +177,7 @@ export default function CompletePage() {
               <button
                 onClick={() => stampWith(passportId)}
                 disabled={busy}
-                className="w-full rounded-xl bg-green-600 px-4 py-4 text-lg font-bold text-white shadow transition hover:bg-green-700 disabled:opacity-60"
+                className="w-full rounded-xl bg-[#0C005B] px-4 py-4 text-lg font-bold text-white shadow transition hover:bg-[#080046] disabled:opacity-60"
               >
                 {`Complete Floor ${station.floor} ✓`}
               </button>

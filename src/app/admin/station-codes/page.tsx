@@ -46,7 +46,7 @@ export default function StationCodesPage() {
           </div>
           <button
             onClick={() => window.print()}
-            className="rounded-xl bg-brand-blue px-5 py-3 font-semibold text-white shadow hover:bg-blue-700"
+            className="rounded-xl bg-[#0C005B] px-5 py-3 font-semibold text-white shadow hover:bg-[#080046]"
           >
             🖨️ Print
           </button>

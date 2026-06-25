@@ -161,14 +161,14 @@ export default function ScannerPage() {
                 <button
                   onClick={confirmStamp}
                   disabled={working}
-                  className="w-full rounded-xl bg-green-600 px-4 py-4 text-lg font-bold text-white shadow transition hover:bg-green-700 disabled:opacity-60"
+                  className="w-full rounded-xl bg-[#0C005B] px-4 py-4 text-lg font-bold text-white shadow transition hover:bg-[#080046] disabled:opacity-60"
                 >
                   {working ? "Saving..." : `Confirm Floor ${station.floor} ✓`}
                 </button>
               )}
               <button
                 onClick={scanNext}
-                className="w-full rounded-xl bg-slate-100 px-4 py-3 font-semibold text-slate-700 transition hover:bg-slate-200"
+                className="w-full rounded-xl bg-[#0C005B] px-4 py-3 font-semibold text-white transition hover:bg-[#080046]"
               >
                 {phase === "done" ? "Scan Next Guest" : "Cancel / Scan Again"}
               </button>
@@ -180,7 +180,7 @@ export default function ScannerPage() {
         {phase === "confirming" && !guest && (
           <button
             onClick={scanNext}
-            className="w-full rounded-xl bg-slate-100 px-4 py-3 font-semibold text-slate-700 transition hover:bg-slate-200"
+            className="w-full rounded-xl bg-[#0C005B] px-4 py-3 font-semibold text-white transition hover:bg-[#080046]"
           >
             Scan Again
           </button>

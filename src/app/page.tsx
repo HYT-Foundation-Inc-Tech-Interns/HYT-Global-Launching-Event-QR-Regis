@@ -8,11 +8,15 @@ import { STATIONS } from "@/lib/stations";
 export default function HomePage() {
   return (
     <main>
-      <Header subtitle="Welcome to the event" />
+      <Header subtitle="HYT Global Institute" />
 
       <section className="mx-auto max-w-5xl px-4 py-12">
         <div className="rounded-3xl bg-white p-8 text-center shadow-sm ring-1 ring-slate-200">
-          <p className="text-5xl">🛂</p>
+          <img
+            src="/hyt-global-institute.png"
+            alt="Passport icon"
+            className="mx-auto h-20 w-20 rounded-full object-cover"
+          />
           <h1 className="mt-4 text-3xl font-bold text-slate-800 sm:text-4xl">
             HYT Digital Passport
           </h1>
@@ -24,15 +28,9 @@ export default function HomePage() {
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Link
               href="/register"
-              className="w-full rounded-xl bg-brand-blue px-6 py-3 font-semibold text-white shadow transition hover:bg-blue-700 sm:w-auto"
+              className="w-full rounded-xl bg-[#0C005B] px-6 py-3 font-semibold text-white shadow transition hover:bg-[#080046] sm:w-auto"
             >
               Register as a Guest
-            </Link>
-            <Link
-              href="/admin/dashboard"
-              className="w-full rounded-xl bg-slate-100 px-6 py-3 font-semibold text-slate-700 transition hover:bg-slate-200 sm:w-auto"
-            >
-              Admin Dashboard
             </Link>
           </div>
         </div>
