@@ -25,7 +25,13 @@ export async function GET(
       );
     }
 
-    return NextResponse.json({ guest });
+    // Strip contact PII (email/phone) from this public endpoint. The staff
+    // scanner only needs name, organization, and progress, so we never send
+    // email/phone over the wire here. The admin dashboard (which is access-
+    // controlled) uses /api/admin/guests for the full record.
+    const publicGuest = { ...guest, email: "", phone: "" };
+
+    return NextResponse.json({ guest: publicGuest });
   } catch (err) {
     console.error("GET /api/passport failed:", err);
     return NextResponse.json(

@@ -278,11 +278,25 @@ export async function getGuestById(passportId: string): Promise<Guest | null> {
 const PASSPORT_PREFIX = "HYT";
 const PASSPORT_YEAR = "2026";
 
+/**
+ * A short random secret appended to each Passport ID so the IDs are not
+ * guessable by simply incrementing the sequence number. 4 bytes -> 8 hex
+ * chars (~4.3 billion combinations), which is plenty to stop casual snooping
+ * at a one-day event without needing a database or login.
+ */
+function randomToken(): string {
+  const bytes = new Uint8Array(4);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+}
+
 export async function generateNextPassportId(): Promise<string> {
   const guests = await getAllGuests();
   const next = guests.length + 1;
   const padded = String(next).padStart(4, "0");
-  return `${PASSPORT_PREFIX}-${PASSPORT_YEAR}-${padded}`;
+  // e.g. "HYT-2026-0007-9f3ac71b" — sequential part stays human-readable,
+  // the random suffix makes the full ID unguessable.
+  return `${PASSPORT_PREFIX}-${PASSPORT_YEAR}-${padded}-${randomToken()}`;
 }
 
 /**
