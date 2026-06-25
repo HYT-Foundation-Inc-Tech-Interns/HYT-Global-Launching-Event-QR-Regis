@@ -14,7 +14,7 @@ export interface Station {
   floor: number; // 1-based floor number
   name: string; // station name shown to guests/staff
   activity: string; // the activity performed at the station
-  icon: string; // emoji used as the "digital stamp"
+  icon?: string; // optional emoji "digital stamp" (omitted = no icon shown)
   scannerLink: string; // staff scanner page path
 }
 

@@ -22,13 +22,6 @@ const config: Config = {
       fontFamily: {
         sans: ["var(--font-sans)", "system-ui", "sans-serif"],
       },
-      colors: {
-        brand: {
-          blue: "#0C005B",
-          purple: "#7c3aed",
-          gold: "#d4a017",
-        },
-      },
     },
   },
   plugins: [],
