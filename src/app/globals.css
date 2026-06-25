@@ -10,7 +10,15 @@
 
 body {
   font-family: var(--font-sans);
-  @apply bg-slate-50 text-slate-800 antialiased;
+  color: #0f172a;
+  background-image: url("/roofdeck.jpg");
+  background-color: rgba(255, 255, 255, 0.5);
+  background-blend-mode: overlay;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  min-height: 100vh;
 }
 
 /* A reusable gradient used on headers and the passport card. */
