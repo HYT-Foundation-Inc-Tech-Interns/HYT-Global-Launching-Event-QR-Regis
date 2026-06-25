@@ -45,6 +45,14 @@ export default function RegisterPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Registration failed.");
+      // Remember this guest on THIS device immediately, so when they later
+      // scan a floor poster with their camera, the floor is stamped without
+      // any typing. (Previously this only happened on the /passport page.)
+      try {
+        localStorage.setItem("hyt_passport_id", data.guest.passportId);
+      } catch {
+        // localStorage may be unavailable (private mode); safe to ignore.
+      }
       setGuest(data.guest);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Registration failed.");

@@ -73,13 +73,24 @@ export default function PassportScanner({ passportId }: { passportId: string }) 
   return (
     <div className="mx-auto mb-6 w-full max-w-md rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
       {!open && (
-        <button
-          onClick={startScan}
-          disabled={busy}
-          className="w-full rounded-xl bg-brand-blue px-4 py-4 text-lg font-bold text-white shadow transition hover:bg-blue-700 disabled:opacity-60"
-        >
-          {busy ? "Saving..." : "📷 Scan Station QR"}
-        </button>
+        <>
+          <div className="mb-3 text-center">
+            <h2 className="text-base font-bold text-slate-800">
+              Complete a floor
+            </h2>
+            <p className="mt-0.5 text-sm text-slate-500">
+              Tap below and scan the QR poster at the floor to stamp it here — no
+              typing, and no need to leave this page.
+            </p>
+          </div>
+          <button
+            onClick={startScan}
+            disabled={busy}
+            className="w-full rounded-xl bg-brand-blue px-4 py-4 text-lg font-bold text-white shadow transition hover:bg-blue-700 disabled:opacity-60"
+          >
+            {busy ? "Saving..." : "📷 Scan Station QR"}
+          </button>
+        </>
       )}
 
       {open && (

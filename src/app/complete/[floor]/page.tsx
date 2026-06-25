@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
 import Header from "@/components/Header";
@@ -13,12 +13,13 @@ import type { Guest } from "@/lib/types";
  * This is where a guest lands when they scan a floor's QR poster with their
  * phone's NATIVE camera (the station QR codes encode this URL).
  *
- * We need to know which guest is scanning. We try, in order:
+ * Goal: zero typing. We figure out who is scanning, in order:
  *   1. ?pid=HYT-2026-0001 in the URL (if present)
- *   2. the Passport ID saved in localStorage (set when they viewed their passport)
- *   3. ask them to type it (shown on their passport)
- *
- * Then they confirm and the floor is stamped via /api/stamp.
+ *   2. the Passport ID saved in localStorage (set when they viewed their
+ *      passport on this device)
+ * If we find an ID either way, we stamp this floor IMMEDIATELY on load — the
+ * guest just sees "✅ completed". Only if we cannot identify them do we fall
+ * back to asking them to type their Passport ID.
  */
 export default function CompletePage() {
   const params = useParams<{ floor: string }>();
@@ -26,46 +27,22 @@ export default function CompletePage() {
   const station = getStationById(params.floor);
 
   const [passportId, setPassportId] = useState("");
-  const [loadedFromStorage, setLoadedFromStorage] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [done, setDone] = useState(false);
   const [guest, setGuest] = useState<Guest | null>(null);
   const [message, setMessage] = useState("");
+  // Make sure the automatic stamp only ever fires once, even across the
+  // re-renders / double-invoked effects of React 18 strict mode.
+  const autoStampStarted = useRef(false);
 
-  // On mount, try to auto-fill the Passport ID.
-  useEffect(() => {
-    const fromUrl = searchParams.get("pid");
-    if (fromUrl) {
-      setPassportId(fromUrl.trim());
-      setLoadedFromStorage(true);
-      return;
-    }
-    try {
-      const saved = localStorage.getItem("hyt_passport_id");
-      if (saved) {
-        setPassportId(saved);
-        setLoadedFromStorage(true);
-      }
-    } catch {
-      // ignore
-    }
-  }, [searchParams]);
-
-  if (!station) {
-    return (
-      <main>
-        <Header subtitle="Complete floor" />
-        <p className="px-4 py-16 text-center text-slate-600">
-          Unknown floor: <span className="font-mono">{params.floor}</span>
-        </p>
-      </main>
-    );
-  }
-
-  async function submit() {
-    const id = passportId.trim();
-    if (!id) {
+  /**
+   * Send the stamp for a known Passport ID. Shared by the automatic stamp on
+   * load and the manual fallback button.
+   */
+  async function stampWith(rawId: string) {
+    const id = rawId.trim();
+    if (!id || !station) {
       setError("Please enter your Passport ID (shown on your passport).");
       return;
     }
@@ -77,7 +54,7 @@ export default function CompletePage() {
       try {
         localStorage.setItem("hyt_passport_id", id);
       } catch {
-        // ignore
+        // ignore (private mode, etc.)
       }
 
       const res = await fetch("/api/stamp", {
@@ -85,7 +62,7 @@ export default function CompletePage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           passportId: id,
-          stationId: station!.id,
+          stationId: station.id,
           scannerPage: "guest-self-scan",
         }),
       });
@@ -93,13 +70,13 @@ export default function CompletePage() {
 
       if (res.status === 409 && data.alreadyCompleted) {
         setGuest(data.guest || null);
-        setMessage(`⚠️ You already completed ${station!.name}.`);
+        setMessage(`⚠️ You already completed ${station.name}.`);
         setDone(true);
       } else if (!res.ok) {
         throw new Error(data.error || "Could not record your stamp.");
       } else {
         setGuest(data.guest);
-        setMessage(`✅ ${station!.name} completed!`);
+        setMessage(`✅ ${station.name} completed!`);
         setDone(true);
       }
     } catch (err) {
@@ -107,6 +84,39 @@ export default function CompletePage() {
     } finally {
       setBusy(false);
     }
+  }
+
+  // On mount: find the Passport ID and, if we have one, stamp immediately.
+  useEffect(() => {
+    if (autoStampStarted.current) return;
+
+    let id = (searchParams.get("pid") || "").trim();
+    if (!id) {
+      try {
+        id = (localStorage.getItem("hyt_passport_id") || "").trim();
+      } catch {
+        // ignore
+      }
+    }
+
+    if (id) {
+      autoStampStarted.current = true;
+      setPassportId(id);
+      void stampWith(id);
+    }
+    // We only want this to run once, keyed on the incoming URL.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
+
+  if (!station) {
+    return (
+      <main>
+        <Header subtitle="Complete floor" />
+        <p className="px-4 py-16 text-center text-slate-600">
+          Unknown floor: <span className="font-mono">{params.floor}</span>
+        </p>
+      </main>
+    );
   }
 
   return (
@@ -126,8 +136,8 @@ export default function CompletePage() {
             </div>
           )}
 
-          {/* After success / already-completed */}
           {done ? (
+            /* Success / already-completed */
             <div className="mt-5">
               <div className="rounded-lg bg-slate-50 p-4 text-base font-semibold text-slate-700">
                 {message}
@@ -144,13 +154,20 @@ export default function CompletePage() {
                 View My Passport
               </Link>
             </div>
+          ) : busy ? (
+            /* Auto-stamping in progress — guest did nothing but scan. */
+            <div className="mt-6 flex flex-col items-center">
+              <div className="h-9 w-9 animate-spin rounded-full border-4 border-slate-200 border-t-brand-blue" />
+              <p className="mt-4 text-base font-semibold text-slate-700">
+                Stamping your passport…
+              </p>
+            </div>
           ) : (
+            /* Fallback: we could not identify the guest on this device. */
             <div className="mt-5 space-y-3">
-              {!loadedFromStorage && (
-                <p className="text-sm text-slate-600">
-                  Enter your Passport ID to mark this floor complete:
-                </p>
-              )}
+              <p className="text-sm text-slate-600">
+                Enter your Passport ID to mark this floor complete:
+              </p>
               <input
                 value={passportId}
                 onChange={(e) => setPassportId(e.target.value)}
@@ -158,12 +175,17 @@ export default function CompletePage() {
                 className="w-full rounded-xl border border-slate-300 px-4 py-3 text-center font-mono focus:border-brand-blue focus:outline-none focus:ring-2 focus:ring-brand-blue/30"
               />
               <button
-                onClick={submit}
+                onClick={() => stampWith(passportId)}
                 disabled={busy}
                 className="w-full rounded-xl bg-green-600 px-4 py-4 text-lg font-bold text-white shadow transition hover:bg-green-700 disabled:opacity-60"
               >
-                {busy ? "Saving..." : `Complete Floor ${station.floor} ✓`}
+                {`Complete Floor ${station.floor} ✓`}
               </button>
+              <p className="pt-1 text-xs text-slate-400">
+                Tip: open your passport and tap{" "}
+                <span className="font-semibold">“📷 Scan Station QR”</span> to
+                stamp floors without typing your ID each time.
+              </p>
             </div>
           )}
         </div>

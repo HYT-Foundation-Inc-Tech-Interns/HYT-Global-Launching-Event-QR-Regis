@@ -36,11 +36,12 @@ export default function StationCodesPage() {
         <div className="print:hidden mb-6 flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-slate-800">
-              Station QR Codes
+              Printable QR Codes
             </h1>
             <p className="text-sm text-slate-500">
-              Print this page and post one QR at each floor. Guests scan it to
-              complete the floor.
+              Post the <span className="font-semibold">Register</span> QR at the
+              entrance, and one floor QR at each floor. Guests scan to register
+              and to complete each floor.
             </p>
           </div>
           <button
@@ -52,6 +53,34 @@ export default function StationCodesPage() {
         </div>
 
         <div className="grid gap-6 sm:grid-cols-2">
+          {/* Registration QR — guests scan this (e.g. at the entrance) to
+              open the registration form on their own phone. */}
+          <div className="flex break-inside-avoid flex-col items-center rounded-2xl border-2 border-brand-purple bg-white p-6 text-center">
+            <div className="text-4xl">📝</div>
+            <h2 className="mt-2 text-lg font-bold text-slate-800">Register</h2>
+            <p className="text-sm font-medium text-slate-700">
+              Get your HYT Digital Passport
+            </p>
+            <p className="mb-4 text-xs text-slate-500">
+              Scan with your phone to sign up
+            </p>
+
+            <div className="rounded-xl border border-slate-200 p-3">
+              {origin ? (
+                <QRCodeCanvas value={`${origin}/register`} size={200} level="M" />
+              ) : (
+                <div className="h-[200px] w-[200px] animate-pulse bg-slate-100" />
+              )}
+            </div>
+
+            <p className="mt-3 text-base font-bold text-brand-purple">
+              Scan to Register
+            </p>
+            <p className="mt-1 break-all font-mono text-[10px] text-slate-400">
+              {origin ? `${origin}/register` : ""}
+            </p>
+          </div>
+
           {STATIONS.map((station) => {
             const url = origin ? `${origin}/complete/${station.id}` : "";
             return (
