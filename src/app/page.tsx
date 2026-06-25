@@ -11,7 +11,7 @@ export default function HomePage() {
       <Header subtitle="HYT Global Institute" />
 
       <section className="mx-auto max-w-5xl px-4 py-12">
-        <div className="rounded-3xl bg-white p-8 text-center shadow-sm ring-1 ring-slate-200">
+        <div className="rounded-3xl bg-white p-8 text-center shadow-sm ring-2 ring-[#0C005B]">
           <img
             src="/hyt-global-institute.png"
             alt="Passport icon"
@@ -43,7 +43,7 @@ export default function HomePage() {
           {STATIONS.map((s) => (
             <div
               key={s.id}
-              className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200"
+              className="rounded-3xl bg-white p-8 text-center shadow-sm ring-2 ring-[#0C005B]"
             >
               <div className="text-3xl">{s.icon}</div>
               <p className="mt-2 font-semibold text-slate-800">
@@ -55,7 +55,7 @@ export default function HomePage() {
         </div>
 
         {/* How it works for guests */}
-        <div className="mt-10 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+        <div className="mt-10 rounded-3xl bg-white p-8 shadow-sm ring-2 ring-[#0C005B]">
           <h3 className="text-lg font-bold text-slate-800">How it works</h3>
           <ol className="mt-3 space-y-2 text-sm text-slate-600">
             <li>
