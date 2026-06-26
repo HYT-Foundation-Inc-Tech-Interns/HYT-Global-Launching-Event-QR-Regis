@@ -23,9 +23,9 @@ body {
 
 @media (max-width: 640px) {
   body {
-    background-position: center;
-    background-size: fill;
-    background-repeat: no-repeat;
+    background-position: top center;
+    background-size: contain;
+    background-attachment: scroll;
   }
 }
 
