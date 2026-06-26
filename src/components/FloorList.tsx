@@ -12,7 +12,7 @@ export default function FloorList({ floors }: { floors: boolean[] }) {
         return (
           <li
             key={station.id}
-            className={`flex items-center gap-4 rounded-xl border p-3 ${
+            className={`flex items-center gap-4 rounded-xl border p-3 transition duration-200 ease-out hover:scale-[1.02] hover:shadow-lg ${
               done
                 ? "border-brand-gold/40 bg-amber-50"
                 : "border-slate-200 bg-white"
