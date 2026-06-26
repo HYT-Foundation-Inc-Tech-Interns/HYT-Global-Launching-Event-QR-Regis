@@ -115,6 +115,8 @@ export default function ScannerPage() {
           <div className="text-4xl">{station.icon}</div>
           <h1 className="mt-1 text-xl font-bold text-slate-800">
               Floor {station.floor} {station.name}
+          </h1>
+        </div>
 
         {error && (
           <div className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-700 ring-1 ring-red-200">
