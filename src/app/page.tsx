@@ -36,7 +36,7 @@ export default function HomePage() {
         </div>
 
         {/* Floor overview */}
-        <h2 className="mt-12 text-xl font-bold text-slate-800">
+        <h2 className="mt-12 text-xl font-bold text-white">
           Floors & Stations
         </h2>
         <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
