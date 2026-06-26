@@ -23,8 +23,8 @@ body {
 
 @media (max-width: 640px) {
   body {
-    background-position: top center;
-    background-size: contain;
+    background-position: center;
+    background-size: fill;
     background-repeat: no-repeat;
   }
 }
