@@ -57,7 +57,7 @@ Guests experience:
 ● Training course showcase
 ● Business ecosystem map
 
-Activity 2:Future Classroom Demonstration
+Activity 2: Future Classroom Demonstration
 
 Simulation:
 "How modern training will look in the future"
@@ -69,7 +69,7 @@ Demonstrate:
 ● Online class capability
 ● Smart classroom setup
 
-Activity 3:Build Your Career Path
+Activity 3: Build Your Career Path
 
 Interactive touchscreen activity:
 
