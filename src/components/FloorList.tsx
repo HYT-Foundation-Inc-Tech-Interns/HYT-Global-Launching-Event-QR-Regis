@@ -92,13 +92,13 @@ export default function FloorList({ floors }: { floors: boolean[] }) {
             <div
               id={`floor-info-${station.id}`}
               className={`overflow-hidden transition-all duration-200 ${
-                open ? "max-h-80 opacity-100" : "max-h-0 opacity-0"
+                open ? "max-h-[1000px] opacity-100" : "max-h-0 opacity-0"
               }`}
             >
               {station.description ? (
-                <div className="mt-3 rounded-2xl bg-slate-50 px-4 py-3 text-sm leading-6 text-slate-600 whitespace-pre-line">
+                <div className="mt-3 rounded-2xl bg-slate-50 px-4 py-3 text-sm leading-6 text-slate-600">
                   {hasTitle ? <h4 className="text-base font-semibold text-slate-800">{titleLine}</h4> : null}
-                  <div className="whitespace-pre-line">
+                  <div className="floor-description-scroll whitespace-pre-line">
                     {bodyText.trim()}
                   </div>
                 </div>
