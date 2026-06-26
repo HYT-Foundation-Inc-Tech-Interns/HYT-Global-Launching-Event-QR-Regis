@@ -14,6 +14,7 @@ export interface Station {
   floor: number; // 1-based floor number
   name: string; // station name shown to guests/staff
   activity: string; // the activity performed at the station
+  description?: string; // optional details shown in the floor dropdown
   icon?: string; // optional emoji "digital stamp" (omitted = no icon shown)
   scannerLink: string; // staff scanner page path
 }
@@ -22,36 +23,231 @@ export const STATIONS: Station[] = [
   {
     id: "floor-1",
     floor: 1,
-    name: "Registration / Welcome Station",
-    activity: "Check-in & Welcome",
+    name: "",
+    activity: "HYT Gateway Experience",
+    description: `HYT Digital Passport
+
+Guests receive a QR-based digital passport.
+Each floor has a station where guests scan QR codes and complete activities.
+After completing all floors:
+
+→ Guest receives a certificate of participation / souvenir.
+
+Required Materials:
+● QR codes
+● Registration tablets
+● Welcome signage
+● Event badges
+● Directional boards`,
     scannerLink: "/admin/scan/floor-1",
   },
   {
     id: "floor-2",
     floor: 2,
-    name: "Food & Beverage Experience",
-    activity: "Tasting & Service Demo",
+    name: "",
+    activity: "Technology Innovation Hub",
+    description:`Activity 1: Millennium Interactive Challenge
+
+Using the dynamic touch panel:
+
+Guests experience:
+
+● Interactive company presentation
+● HYT virtual tour
+● Training course showcase
+● Business ecosystem map
+
+Activity 2:Future Classroom Demonstration
+
+Simulation:
+"How modern training will look in the future"
+
+Demonstrate:
+
+● Digital learning
+● Interactive presentations
+● Online class capability
+● Smart classroom setup
+
+Activity 3:Build Your Career Path
+
+Interactive touchscreen activity:
+
+Guest selects:
+"Student"
+"Professional"
+"Business Owner"
+
+System shows possible HYT pathway:
+Training → Certification → Employment → Global Opportunity`,
+
     scannerLink: "/admin/scan/floor-2",
   },
   {
     id: "floor-3",
     floor: 3,
-    name: "Housekeeping Professional Room",
-    activity: "Housekeeping Skills",
+    name: "",
+    activity: "Training Excellence Center",
+    description:
+      `ROOM 301 : 
+    Food & Beverage Experience Room
+
+Activity: "Mini Barista Experience"
+
+Guests:
+
+● Learn coffee preparation basics
+● Experience beverage creation
+● See training equipment
+
+ROOM 302
+Housekeeping Professional Room
+
+Activity:"Hotel Room Setup Challenge"
+
+Demonstration:
+
+● Proper bed preparation
+● Hospitality standards
+● Room inspection checklist
+
+ROOM 303
+Events Management Room
+
+Activity: "Create Your Event"
+Using the touchscreen:
+Guests design:
+● Event concept
+● Program flow
+● Marketing materials
+
+ROOM 304
+Computer Servicing Room
+
+Activity: "Technology Diagnosis Challenge"
+
+Guests experience:
+● Hardware identification
+● Troubleshooting simulation
+
+ROOM 305
+Contact Center Simulation Room
+
+Activity:"Customer Service Experience"
+
+Simulation:
+
+● Handling customer concerns
+● Communication challenge`,
     scannerLink: "/admin/scan/floor-3",
   },
   {
     id: "floor-4",
     floor: 4,
-    name: "Events Management Room",
-    activity: "Event Planning Challenge",
+    name: "",
+    activity: "Career & Business Solutions Floor",
+    description:`4TH FLOOR
+"Career & Business Solutions Floor"
+
+Purpose:
+Showcase company ecosystem.
+
+ROOM 401
+International Manpower Agency
+
+Theme: "From Skills to Global Careers"
+Activity: Global Career Map
+Guests explore:
+Philippines → International Opportunities
+
+Show:
+● Career destinations
+● Requirements
+● Process
+
+ROOM 402
+Manpower Solutions Company
+
+Activity: "Workforce Management Simulation"
+
+Show: How companies solve manpower requirements.
+
+ROOM 403
+Marketing Strategy Company
+Activity:"Brand Building Challenge"
+
+Guests create:
+
+● Business slogan
+● Marketing idea
+● Digital campaign concept
+
+ROOM 404
+Law Firm
+
+Activity: "Business Protection Awareness"
+
+Presentation:
+
+● Business registration
+● Compliance
+● Legal support
+
+ROOM 405
+Executive Networking Room
+
+VIP discussions
+
+● Partners
+● Investors
+● Guests`,
     scannerLink: "/admin/scan/floor-4",
   },
   {
-    id: "floor-5",
+    id: "5th-floor",
     floor: 5,
-    name: "Computer Servicing / Contact Center Simulation",
-    activity: "Tech & Support Simulation",
+    name: "",
+    activity: "Grand Launching & Future Vision Hall",
+    description: `5TH FLOOR
+"Grand Launching & Future Vision Hall"
+
+Purpose:
+Main ceremony.
+
+Program:
+
+1:00 PM Guest Arrival
+1:30 PM Building Experience Tour
+3:00 PM Opening Ceremony
+
+Program:
+
+● Invocation
+● National Anthem
+● Welcome Remarks
+● Founder Message
+● HYT Global Institute Introduction
+● TESDA Recognition
+● Ribbon Cutting
+
+Technology Highlight:
+
+Millennium Dynamic Touch Panel Presentation:
+
+"HYT Global Institute Future Vision"
+
+Presentation includes:
+
+● Training programs
+● Facilities
+● Career pathway
+● Company ecosystem
+
+5th Floor Interactive Ending:
+Future Commitment Wall
+
+Guests write: "My future skill goal is..." ( Optional )
+Digital collection using touchscreen.`,
     scannerLink: "/admin/scan/floor-5",
   },
 ];

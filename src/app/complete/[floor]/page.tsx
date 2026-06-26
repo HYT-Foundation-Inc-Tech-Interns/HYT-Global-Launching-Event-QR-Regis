@@ -126,7 +126,7 @@ export default function CompletePage() {
         <div className="rounded-2xl bg-white p-6 text-center shadow-sm ring-1 ring-slate-200">
           <div className="text-5xl">{station.icon}</div>
           <h1 className="mt-2 text-xl font-bold text-slate-800">
-            Floor {station.floor}: {station.name}
+            Floor {station.floor} {station.name}
           </h1>
           <p className="text-sm text-slate-500">{station.activity}</p>
 

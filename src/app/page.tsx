@@ -17,14 +17,10 @@ export default function HomePage() {
             alt="Passport icon"
             className="mx-auto h-20 w-20 rounded-full object-cover"
           />
-          <h1 className="mt-4 text-3xl font-bold text-slate-800 sm:text-4xl">
+          <h4 className="mt-4 text-3xl font-bold text-slate-800 sm:text-4xl">
             HYT Digital Passport
-          </h1>
-          <p className="mx-auto mt-3 max-w-xl text-slate-600">
-            Register, collect a digital stamp at every floor, and complete your
-            passport to claim your certificate of participation or souvenir.
-          </p>
-
+          </h4>
+          
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Link
               href="/register"
@@ -43,13 +39,15 @@ export default function HomePage() {
           {STATIONS.map((s) => (
             <div
               key={s.id}
-              className="rounded-3xl bg-white p-8 text-center shadow-sm ring-2 ring-[#0C005B]"
+              className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200 flex flex-col"
             >
               <div className="text-3xl">{s.icon}</div>
               <p className="mt-2 font-semibold text-slate-800">
                 Floor {s.floor}: {s.name}
               </p>
-              <p className="text-sm text-slate-500">{s.activity}</p>
+              <p className="mt-2 max-h-24 overflow-y-auto text-sm text-slate-500">
+                {s.activity}
+              </p>
             </div>
           ))}
         </div>
