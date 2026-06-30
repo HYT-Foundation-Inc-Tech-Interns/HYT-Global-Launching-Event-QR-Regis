@@ -88,7 +88,7 @@ export default function PassportScanner({ passportId }: { passportId: string }) 
             disabled={busy}
             className="w-full rounded-xl bg-[#0C005B] px-4 py-4 text-lg font-bold text-white shadow transition hover:bg-[#080046] disabled:opacity-60"
           >
-            {busy ? "Saving..." : "📷 Scan Station QR"}
+            {busy ? "Saving..." : "📷 Scan QR"}
           </button>
         </>
       )}

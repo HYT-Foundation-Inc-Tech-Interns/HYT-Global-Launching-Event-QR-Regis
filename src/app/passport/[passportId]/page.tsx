@@ -60,7 +60,7 @@ export default async function PassportPage({
         <PassportCard guest={guest} />
         <p className="mt-6 text-center text-sm text-slate-500">
           Keep this page open on your phone. Tap{" "}
-          <span className="font-semibold">Scan Station QR</span> at each floor to
+          <span className="font-semibold">Scan QR</span> at each floor to
           collect your stamp.
         </p>
       </section>
