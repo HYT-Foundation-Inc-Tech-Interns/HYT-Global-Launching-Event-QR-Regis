@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useParams } from "next/navigation";
 import Header from "@/components/Header";
 import QrScanner from "@/components/QrScanner";
+import ScannerBoundary from "@/components/ScannerBoundary";
 import { getStationById } from "@/lib/stations";
 import type { Guest } from "@/lib/types";
 
@@ -130,7 +131,9 @@ export default function ScannerPage() {
             <p className="mb-3 text-center text-sm font-medium text-slate-600">
               Point the camera at the guest&apos;s passport QR code.
             </p>
-            <QrScanner key={scanKey} onScan={handleScan} onError={setError} />
+            <ScannerBoundary>
+              <QrScanner key={scanKey} onScan={handleScan} onError={setError} />
+            </ScannerBoundary>
           </div>
         )}
 

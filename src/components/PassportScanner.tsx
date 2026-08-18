@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import QrScanner from "./QrScanner";
+import ScannerBoundary from "./ScannerBoundary";
 import { extractStationId, getStationById } from "@/lib/stations";
 
 /**
@@ -98,7 +99,9 @@ export default function PassportScanner({ passportId }: { passportId: string }) 
           <p className="mb-3 text-center text-sm font-medium text-slate-600">
             Point your camera at the QR poster on this floor.
           </p>
-          <QrScanner key={scanKey} onScan={handleScan} onError={setError} />
+          <ScannerBoundary onFail={() => setOpen(false)}>
+            <QrScanner key={scanKey} onScan={handleScan} onError={setError} />
+          </ScannerBoundary>
           <button
             onClick={() => setOpen(false)}
             className="mt-3 w-full rounded-xl bg-[#0C005B] px-4 py-2 font-semibold text-white hover:bg-[#080046]"

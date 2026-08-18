@@ -1,16 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
-import PassportCard from "@/components/PassportCard";
-import PassportScanner from "@/components/PassportScanner";
-import type { Guest } from "@/lib/types";
 
 /**
  * Guest registration page (/register).
  *
- * Collects the guest details, posts them to /api/register, and then shows
- * the guest's brand-new digital passport.
+ * Collects the guest details, posts them to /api/register, and then sends the
+ * guest straight to their brand-new digital passport at /passport/[id].
  *
  * Designed to work well on registration tablets: large inputs and buttons.
  */
@@ -19,6 +17,7 @@ import type { Guest } from "@/lib/types";
 const GUEST_TYPES = ["Student", "Teacher", "Industry Partner", "VIP", "Visitor"];
 
 export default function RegisterPage() {
+  const router = useRouter();
   const [form, setForm] = useState({
     fullName: "",
     email: "",
@@ -28,7 +27,9 @@ export default function RegisterPage() {
   });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
-  const [guest, setGuest] = useState<Guest | null>(null);
+  // Stays true from a successful submit until the passport page takes over,
+  // so the form never flashes back while the navigation is in flight.
+  const [redirecting, setRedirecting] = useState(false);
 
   function update(field: keyof typeof form, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -54,38 +55,30 @@ export default function RegisterPage() {
       } catch {
         // localStorage may be unavailable (private mode); safe to ignore.
       }
-      setGuest(data.guest);
+      setRedirecting(true);
+      router.push(`/passport/${encodeURIComponent(data.guest.passportId)}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Registration failed.");
-    } finally {
       setSubmitting(false);
     }
   }
 
-  // After a successful registration, show the passport.
-  if (guest) {
+  // Registration succeeded — hold this screen until the passport page loads.
+  if (redirecting) {
     return (
       <main>
         <Header subtitle="Registration complete" />
-        <section className="mx-auto max-w-5xl px-4 py-8">
-          <div className="mb-6 rounded-xl bg-green-50 p-4 text-center text-green-800 ring-1 ring-green-200">
-            🎉 You&apos;re registered! Here is your digital passport. Save it or
-            take a screenshot, and bring it to each floor.
+        <section className="mx-auto max-w-md px-4 py-16">
+          <div className="flex flex-col items-center rounded-2xl bg-white p-8 text-center shadow-sm ring-1 ring-slate-200">
+            <div className="text-5xl">🎉</div>
+            <h1 className="mt-3 text-xl font-bold text-slate-800">
+              You&apos;re registered!
+            </h1>
+            <div className="mt-6 h-9 w-9 animate-spin rounded-full border-4 border-slate-200 border-t-brand-blue" />
+            <p className="mt-4 text-sm text-slate-500">
+              Opening your digital passport…
+            </p>
           </div>
-
-          {/* Let the guest start scanning floor QR posters right away. */}
-          <PassportScanner passportId={guest.passportId} />
-
-          <PassportCard guest={guest} />
-          <p className="mt-6 text-center text-sm text-slate-500">
-            Your passport link:{" "}
-            <a
-              href={guest.passportLink}
-              className="font-mono text-brand-purple hover:underline"
-            >
-              {guest.passportLink}
-            </a>
-          </p>
         </section>
       </main>
     );
