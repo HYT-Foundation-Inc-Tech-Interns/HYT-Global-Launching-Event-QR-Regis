@@ -1,12 +1,17 @@
 import Link from "next/link";
 import Header from "@/components/Header";
+import HomeGate from "@/components/HomeGate";
 import { STATIONS } from "@/lib/stations";
 
 /**
  * Landing page. Quick links to the main areas of the app.
+ *
+ * Wrapped in HomeGate: a device that already knows a Passport ID is sent
+ * straight to that passport instead of seeing this page.
  */
 export default function HomePage() {
   return (
+    <HomeGate>
     <main>
       <Header subtitle="HYT Global Institute" />
 
@@ -91,5 +96,6 @@ export default function HomePage() {
         </div>
       </section>
     </main>
+    </HomeGate>
   );
 }

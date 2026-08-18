@@ -35,7 +35,7 @@ After completing all floors:
 
 Required Materials:
 ● QR codes
-● Registration tablets
+● Registration QR poster (guests register on their own phones)
 ● Welcome signage
 ● Event badges
 ● Directional boards`,

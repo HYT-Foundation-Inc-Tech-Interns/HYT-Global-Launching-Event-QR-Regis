@@ -13,8 +13,8 @@ const MATERIALS = [
     note: "Printed station QR codes and guest passport QR codes.",
   },
   {
-    item: "Registration Tablets",
-    note: "Tablets at the entrance opened to the /register page.",
+    item: "Registration QR Poster",
+    note: "Printed at the entrance. Guests scan it and register on their own phones — no staff device needed.",
   },
   {
     item: "Welcome Signage",

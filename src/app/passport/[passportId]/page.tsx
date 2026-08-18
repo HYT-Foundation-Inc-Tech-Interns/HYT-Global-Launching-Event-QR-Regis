@@ -63,6 +63,14 @@ export default async function PassportPage({
           <span className="font-semibold">Scan QR</span> at each floor to
           collect your stamp.
         </p>
+        {/* Escape hatch for a phone used by more than one guest: "?new"
+            forgets the saved Passport ID so the next guest can sign up. */}
+        <p className="mt-3 text-center text-xs text-slate-400">
+          Not {guest.fullName}?{" "}
+          <Link href="/?new=1" className="font-medium underline">
+            Register a different guest
+          </Link>
+        </p>
       </section>
     </main>
   );

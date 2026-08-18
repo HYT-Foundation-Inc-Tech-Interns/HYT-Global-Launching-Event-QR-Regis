@@ -10,7 +10,8 @@ import Header from "@/components/Header";
  * Collects the guest details, posts them to /api/register, and then sends the
  * guest straight to their brand-new digital passport at /passport/[id].
  *
- * Designed to work well on registration tablets: large inputs and buttons.
+ * Guests reach this page by scanning the entrance QR poster and register on
+ * their own phones, so the form is sized for one-handed use on a small screen.
  */
 
 // The guest types offered in the dropdown. Edit freely for your event.
