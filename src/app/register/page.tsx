@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Header from "@/components/Header";
 import PassportCard from "@/components/PassportCard";
+import PassportScanner from "@/components/PassportScanner";
 import type { Guest } from "@/lib/types";
 
 /**
@@ -71,6 +72,10 @@ export default function RegisterPage() {
             🎉 You&apos;re registered! Here is your digital passport. Save it or
             take a screenshot, and bring it to each floor.
           </div>
+
+          {/* Let the guest start scanning floor QR posters right away. */}
+          <PassportScanner passportId={guest.passportId} />
+
           <PassportCard guest={guest} />
           <p className="mt-6 text-center text-sm text-slate-500">
             Your passport link:{" "}
