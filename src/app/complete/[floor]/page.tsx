@@ -19,7 +19,7 @@ import type { Guest } from "@/lib/types";
  *   2. the Passport ID saved in localStorage (set when they viewed their
  *      passport on this device)
  * If we find an ID either way, we stamp this floor IMMEDIATELY on load — the
- * guest just sees "✅ completed". Only if we cannot identify them do we fall
+ * guest just sees a completion message. Only if we cannot identify them do we fall
  * back to asking them to type their Passport ID.
  */
 export default function CompletePage() {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Camera } from "lucide-react";
 import { useRouter } from "next/navigation";
 import QrScanner from "./QrScanner";
 import ScannerBoundary from "./ScannerBoundary";
@@ -57,11 +58,11 @@ export default function PassportScanner({ passportId }: { passportId: string }) 
       const data = await res.json();
 
       if (res.status === 409 && data.alreadyCompleted) {
-        setMessage(`⚠️ You already completed ${station?.name}.`);
+        setMessage(`You already completed ${station?.name}.`);
       } else if (!res.ok) {
         throw new Error(data.error || "Could not record your stamp.");
       } else {
-        setMessage(`✅ ${station?.name} completed! Your passport is updated.`);
+        setMessage(`${station?.name} completed! Your passport is updated.`);
         router.refresh(); // reload the page so new stamps show
       }
     } catch (err) {
@@ -89,7 +90,7 @@ export default function PassportScanner({ passportId }: { passportId: string }) 
             disabled={busy}
             className="w-full rounded-xl bg-[#0C005B] px-4 py-4 text-lg font-bold text-white shadow transition hover:bg-[#080046] disabled:opacity-60"
           >
-            {busy ? "Saving..." : "📷 Scan QR"}
+            {busy ? "Saving..." : <><Camera className="mr-2 inline h-5 w-5" aria-hidden="true" /> Scan QR</>}
           </button>
         </>
       )}

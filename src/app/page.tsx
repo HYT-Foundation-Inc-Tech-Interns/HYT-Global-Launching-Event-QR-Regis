@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ArrowRight, Printer } from "lucide-react";
 import Header from "@/components/Header";
 import HomeGate from "@/components/HomeGate";
 import { STATIONS } from "@/lib/stations";
@@ -85,7 +86,9 @@ export default function HomePage() {
             href="/admin/station-codes"
             className="text-sm font-medium text-brand-purple hover:underline"
           >
-            🖨️ Print station QR codes (staff) →
+            <Printer className="mr-1 inline h-4 w-4" aria-hidden="true" />
+            Print station QR codes (staff)
+            <ArrowRight className="ml-1 inline h-4 w-4" aria-hidden="true" />
           </Link>
           <Link
             href="/admin/materials"

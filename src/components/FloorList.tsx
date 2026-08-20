@@ -121,7 +121,7 @@ export default function FloorList({ floors }: { floors: boolean[] }) {
                 {done ? (
                     <StampIcon
                       floor={station.floor}
-                      className="h-16 w-16 text-brand-gold"
+                      className="h-8 w-8 text-brand-gold"
                     />
                 ) : (
                   "Not Completed"

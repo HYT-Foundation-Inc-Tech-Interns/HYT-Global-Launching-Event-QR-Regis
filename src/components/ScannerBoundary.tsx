@@ -31,7 +31,7 @@ export default class ScannerBoundary extends Component<
       return (
         <div className="rounded-lg bg-red-50 p-3 text-center text-sm text-red-700 ring-1 ring-red-200">
           The camera scanner stopped unexpectedly. Close it and tap
-          <span className="font-semibold"> 📷 Scan QR </span>
+          <span className="font-semibold">Scan QR</span>
           again, or scan the floor poster with your phone&apos;s camera app.
         </div>
       );

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
+import { PartyPopper } from "lucide-react";
 
 /**
  * Guest registration page (/register).
@@ -71,7 +72,7 @@ export default function RegisterPage() {
         <Header subtitle="Registration complete" />
         <section className="mx-auto max-w-md px-4 py-16">
           <div className="flex flex-col items-center rounded-2xl bg-white p-8 text-center shadow-sm ring-1 ring-slate-200">
-            <div className="text-5xl">🎉</div>
+            <PartyPopper className="h-12 w-12 text-brand-gold" aria-hidden="true" />
             <h1 className="mt-3 text-xl font-bold text-slate-800">
               You&apos;re registered!
             </h1>

@@ -3,7 +3,9 @@
 import { useEffect, useState } from "react";
 import { QRCodeCanvas } from "qrcode.react";
 import Header from "@/components/Header";
+import { FilePenLine, Printer } from "lucide-react";
 import { STATIONS } from "@/lib/stations";
+import StampIcon from "@/components/StampIcon";
 
 /**
  * Printable station QR codes (/admin/station-codes).
@@ -48,7 +50,8 @@ export default function StationCodesPage() {
             onClick={() => window.print()}
             className="rounded-xl bg-[#0C005B] px-5 py-3 font-semibold text-white shadow hover:bg-[#080046]"
           >
-            🖨️ Print
+            <Printer className="mr-2 inline h-4 w-4" aria-hidden="true" />
+            Print
           </button>
         </div>
 
@@ -56,7 +59,7 @@ export default function StationCodesPage() {
           {/* Registration QR — guests scan this (e.g. at the entrance) to
               open the registration form on their own phone. */}
           <div className="flex break-inside-avoid flex-col items-center rounded-2xl border-2 border-brand-purple bg-white p-6 text-center">
-            <div className="text-4xl">📝</div>
+            <FilePenLine className="h-10 w-10 text-brand-purple" aria-hidden="true" />
             <h2 className="mt-2 text-lg font-bold text-slate-800">Register</h2>
             <p className="text-sm font-medium text-slate-700">
               Get your HYT Digital Passport
@@ -88,7 +91,10 @@ export default function StationCodesPage() {
                 key={station.id}
                 className="flex break-inside-avoid flex-col items-center rounded-2xl border border-slate-200 bg-white p-6 text-center"
               >
-                <div className="text-4xl">{station.icon}</div>
+                <StampIcon
+                  floor={station.floor}
+                  className="h-10 w-10 text-brand-gold"
+                />
                 <h2 className="mt-2 text-lg font-bold text-slate-800">
                   Floor {station.floor}
                 </h2>

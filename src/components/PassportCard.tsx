@@ -3,6 +3,7 @@
 import { useRef } from "react";
 import { QRCodeCanvas } from "qrcode.react";
 import { toPng } from "html-to-image";
+import { CheckCircle2, Download, Trophy } from "lucide-react";
 import type { Guest } from "@/lib/types";
 import { TOTAL_FLOORS } from "@/lib/stations";
 import ProgressBar from "./ProgressBar";
@@ -76,7 +77,7 @@ export default function PassportCard({ guest }: { guest: Guest }) {
           {/* Eligibility / congratulations message */}
           {allCompleted && (
             <div className="rounded-xl bg-amber-50 p-4 text-center ring-1 ring-brand-gold/30">
-              <p className="text-2xl">🏆</p>
+              <Trophy className="mx-auto h-8 w-8 text-brand-gold" aria-hidden="true" />
               <p className="mt-1 text-sm font-semibold text-amber-800">
                 Congratulations! You have completed your HYT Digital Passport.
                 Please proceed to the claiming booth for your certificate of
@@ -84,7 +85,8 @@ export default function PassportCard({ guest }: { guest: Guest }) {
               </p>
               {guest.status === "Reward Claimed" && (
                 <p className="mt-2 inline-block rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
-                  ✓ Reward Claimed
+                  <CheckCircle2 className="mr-1 inline h-3.5 w-3.5" aria-hidden="true" />
+                  Reward Claimed
                 </p>
               )}
             </div>
@@ -99,7 +101,8 @@ export default function PassportCard({ guest }: { guest: Guest }) {
         onClick={handleDownload}
         className="mt-4 w-full rounded-xl bg-[#0C005B] px-4 py-3 font-semibold text-white shadow transition hover:bg-[#080046]"
       >
-        ⬇ Download / Save Passport as Image
+        <Download className="mr-2 inline h-4 w-4" aria-hidden="true" />
+        Download / Save Passport as Image
       </button>
     </div>
   );

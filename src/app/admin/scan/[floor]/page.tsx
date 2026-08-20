@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useParams } from "next/navigation";
 import Header from "@/components/Header";
+import StampIcon from "@/components/StampIcon";
 import QrScanner from "@/components/QrScanner";
 import ScannerBoundary from "@/components/ScannerBoundary";
 import { getStationById } from "@/lib/stations";
@@ -91,13 +92,13 @@ export default function ScannerPage() {
       const data = await res.json();
 
       if (res.status === 409 && data.alreadyCompleted) {
-        setMessage(`⚠️ ${guest.fullName} already completed this floor.`);
+        setMessage(`${guest.fullName} already completed this floor.`);
         if (data.guest) setGuest(data.guest);
       } else if (!res.ok) {
         throw new Error(data.error || "Could not record the stamp.");
       } else {
         setGuest(data.guest);
-        setMessage(`✅ ${data.guest.fullName} is stamped for ${station!.name}!`);
+        setMessage(`${data.guest.fullName} is stamped for ${station!.name}!`);
       }
       setPhase("done");
     } catch (err) {
@@ -113,7 +114,10 @@ export default function ScannerPage() {
       <section className="mx-auto max-w-md px-4 py-6">
         {/* Station banner */}
         <div className="mb-5 rounded-2xl bg-white p-4 text-center shadow-sm ring-1 ring-slate-200">
-          <div className="text-4xl">{station.icon}</div>
+          <StampIcon
+            floor={station.floor}
+            className="mx-auto h-10 w-10 text-brand-gold"
+          />
           <h1 className="mt-1 text-xl font-bold text-slate-800">
               Floor {station.floor} {station.name}
           </h1>
@@ -165,7 +169,7 @@ export default function ScannerPage() {
                   disabled={working}
                   className="w-full rounded-xl bg-[#0C005B] px-4 py-4 text-lg font-bold text-white shadow transition hover:bg-[#080046] disabled:opacity-60"
                 >
-                  {working ? "Saving..." : `Confirm Floor ${station.floor} ✓`}
+                  {working ? "Saving..." : `Confirm Floor ${station.floor}`}
                 </button>
               )}
               <button
