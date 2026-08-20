@@ -62,7 +62,7 @@ export default function PassportScanner({ passportId }: { passportId: string }) 
       } else if (!res.ok) {
         throw new Error(data.error || "Could not record your stamp.");
       } else {
-        setMessage(`${station?.name} completed! Your passport is updated.`);
+        setMessage(`${station?.name} Completed! Your passport is updated.`);
         router.refresh(); // reload the page so new stamps show
       }
     } catch (err) {

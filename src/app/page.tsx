@@ -7,8 +7,8 @@ import { STATIONS } from "@/lib/stations";
 /**
  * Landing page. Quick links to the main areas of the app.
  *
- * Wrapped in HomeGate: a device that already knows a Passport ID is sent
- * straight to that passport instead of seeing this page.
+ * Wrapped in HomeGate so the landing page remains available even when the
+ * browser already has saved passport profiles.
  */
 export default function HomePage() {
   return (

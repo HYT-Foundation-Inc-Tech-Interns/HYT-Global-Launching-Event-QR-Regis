@@ -77,7 +77,7 @@ export default function CompletePage() {
         throw new Error(data.error || "Could not record your stamp.");
       } else {
         setGuest(data.guest);
-        setMessage(`${station.name} completed!`);
+        setMessage(`${station.name} Completed!`);
         setDone(true);
       }
     } catch (err) {

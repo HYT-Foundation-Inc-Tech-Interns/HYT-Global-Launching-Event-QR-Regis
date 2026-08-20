@@ -1,4 +1,5 @@
 import Link from "next/link";
+import ProfileMenu from "./ProfileMenu";
 
 /**
  * Simple top header used across pages. Keeps branding consistent.
@@ -20,10 +21,8 @@ export default function Header({ subtitle }: { subtitle?: string }) {
             )}
           </div>
         </Link>
-        <nav className="hidden gap-4 text-sm font-medium sm:flex">
-          <Link href="/register" className="hover:underline">
-            Register
-          </Link>
+        <nav className="flex items-center gap-3 text-sm font-medium">
+          <ProfileMenu />
           <Link href="/admin/dashboard" className="hover:underline">
             Admin
           </Link>

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
+import { savePassportProfile } from "@/components/ProfileMenu";
 import { PartyPopper } from "lucide-react";
 
 /**
@@ -54,6 +55,10 @@ export default function RegisterPage() {
       // any typing. (Previously this only happened on the /passport page.)
       try {
         localStorage.setItem("hyt_passport_id", data.guest.passportId);
+        savePassportProfile({
+          passportId: data.guest.passportId,
+          fullName: data.guest.fullName,
+        });
       } catch {
         // localStorage may be unavailable (private mode); safe to ignore.
       }
