@@ -114,15 +114,17 @@ export default function FloorList({ floors }: { floors: boolean[] }) {
                 title={done ? `Floor ${station.floor} completed` : `Floor ${station.floor} not completed`}
                 className={`inline-flex shrink-0 items-center justify-center rounded-xl text-xs font-semibold ${
                   done
-                    ? "h-16 w-16 bg-brand-blue text-white"
+                    ? "h-16 w-16 rounded-full border-4 border-brand-blue bg-white p-1"
                     : "bg-slate-100 px-3 py-1 text-slate-500"
                 }`}
               >
                 {done ? (
+                  <span className="flex h-full w-full items-center justify-center rounded-full bg-brand-blue">
                     <StampIcon
                       floor={station.floor}
-                      className="h-8 w-8 text-brand-gold"
+                      className="h-8 w-8 text-white"
                     />
+                  </span>
                 ) : (
                   "Not Completed"
                 )}
