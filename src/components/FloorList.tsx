@@ -69,6 +69,42 @@ export default function FloorList({ floors }: { floors: boolean[] }) {
             }`}
           >
             <div className="flex items-start gap-4">
+
+              <span
+                aria-label={done ? `Floor ${station.floor} completed` : `Floor ${station.floor} not completed`}
+                title={done ? `Floor ${station.floor} completed` : `Floor ${station.floor} not completed`}
+                className={`inline-flex h-16 w-16 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${
+                  done
+                    ? "border-4 border-brand-blue bg-white p-1"
+                    : "border-4 border-brand-blue bg-white"
+                }`}
+              >
+                {done ? (
+                  <span className="flex h-full w-full items-center justify-center rounded-full bg-brand-blue">
+                    <StampIcon
+                      floor={station.floor}
+                      className="h-8 w-8 text-white"
+                    />
+                  </span>
+                ) : (
+                  <span className="sr-only">Not Completed</span>
+                )}
+                {done ? <span className="sr-only">Completed</span> : null}
+              </span>
+
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <div className="min-w-0">
+                    <p className="truncate font-semibold text-slate-800">
+                      Floor {station.floor} {station.name}
+                    </p>
+                    <p className="truncate text-sm text-slate-500">
+                      {station.activity}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
               <button
                 type="button"
                 aria-expanded={open}
@@ -96,40 +132,7 @@ export default function FloorList({ floors }: { floors: boolean[] }) {
                 </svg>
               </button>
 
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <div className="min-w-0">
-                    <p className="truncate font-semibold text-slate-800">
-                      Floor {station.floor} {station.name}
-                    </p>
-                    <p className="truncate text-sm text-slate-500">
-                      {station.activity}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <span
-                aria-label={done ? `Floor ${station.floor} completed` : `Floor ${station.floor} not completed`}
-                title={done ? `Floor ${station.floor} completed` : `Floor ${station.floor} not completed`}
-                className={`inline-flex h-16 w-16 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${
-                  done
-                    ? "border-4 border-brand-blue bg-white p-1"
-                    : "border-4 border-brand-blue bg-white"
-                }`}
-              >
-                {done ? (
-                  <span className="flex h-full w-full items-center justify-center rounded-full bg-brand-blue">
-                    <StampIcon
-                      floor={station.floor}
-                      className="h-8 w-8 text-white"
-                    />
-                  </span>
-                ) : (
-                  <span className="sr-only">Not Completed</span>
-                )}
-                {done ? <span className="sr-only">Completed</span> : null}
-              </span>
+              
             </div>
 
             <div
