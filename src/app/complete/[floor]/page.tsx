@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
 import Header from "@/components/Header";
+import StampIcon from "@/components/StampIcon";
 import { getStationById } from "@/lib/stations";
 import type { Guest } from "@/lib/types";
 
@@ -70,13 +71,13 @@ export default function CompletePage() {
 
       if (res.status === 409 && data.alreadyCompleted) {
         setGuest(data.guest || null);
-        setMessage(`⚠️ You already completed ${station.name}.`);
+        setMessage(`You already completed ${station.name}.`);
         setDone(true);
       } else if (!res.ok) {
         throw new Error(data.error || "Could not record your stamp.");
       } else {
         setGuest(data.guest);
-        setMessage(`✅ ${station.name} completed!`);
+        setMessage(`${station.name} completed!`);
         setDone(true);
       }
     } catch (err) {
@@ -124,7 +125,10 @@ export default function CompletePage() {
       <Header subtitle={`Floor ${station.floor}`} />
       <section className="mx-auto max-w-md px-4 py-8">
         <div className="rounded-2xl bg-white p-6 text-center shadow-sm ring-1 ring-slate-200">
-          <div className="text-5xl">{station.icon}</div>
+          <StampIcon
+            floor={station.floor}
+            className="mx-auto h-12 w-12 text-brand-gold"
+          />
           <h1 className="mt-2 text-xl font-bold text-slate-800">
             Floor {station.floor} {station.name}
           </h1>
@@ -179,11 +183,11 @@ export default function CompletePage() {
                 disabled={busy}
                 className="w-full rounded-xl bg-[#0C005B] px-4 py-4 text-lg font-bold text-white shadow transition hover:bg-[#080046] disabled:opacity-60"
               >
-                {`Complete Floor ${station.floor} ✓`}
+                {`Complete Floor ${station.floor}`}
               </button>
               <p className="pt-1 text-xs text-slate-400">
                 Tip: open your passport and tap{" "}
-                <span className="font-semibold">“📷 Scan Station QR”</span> to
+                <span className="font-semibold">“Scan Station QR”</span> to
                 stamp floors without typing your ID each time.
               </p>
             </div>

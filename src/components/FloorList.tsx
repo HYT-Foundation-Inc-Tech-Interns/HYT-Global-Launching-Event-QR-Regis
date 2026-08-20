@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { STATIONS } from "@/lib/stations";
+import StampIcon from "./StampIcon";
 
 /**
  * Decide whether a description line is a "header" worth emboldening:
@@ -97,8 +98,11 @@ export default function FloorList({ floors }: { floors: boolean[] }) {
 
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
-                  {station.icon ? (
-                    <span className="text-2xl text-slate-700">{station.icon}</span>
+                  {done ? (
+                    <StampIcon
+                      floor={station.floor}
+                      className="h-6 w-6 shrink-0 text-brand-gold"
+                    />
                   ) : null}
                   <div className="min-w-0">
                     <p className="truncate font-semibold text-slate-800">
