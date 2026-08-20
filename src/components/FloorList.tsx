@@ -112,10 +112,10 @@ export default function FloorList({ floors }: { floors: boolean[] }) {
               <span
                 aria-label={done ? `Floor ${station.floor} completed` : `Floor ${station.floor} not completed`}
                 title={done ? `Floor ${station.floor} completed` : `Floor ${station.floor} not completed`}
-                className={`inline-flex shrink-0 items-center justify-center rounded-xl text-xs font-semibold ${
+                className={`inline-flex h-16 w-16 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${
                   done
-                    ? "h-16 w-16 rounded-full border-4 border-brand-blue bg-white p-1"
-                    : "bg-slate-100 px-3 py-1 text-slate-500"
+                    ? "border-4 border-brand-blue bg-white p-1"
+                    : "border-4 border-brand-blue bg-white"
                 }`}
               >
                 {done ? (
@@ -126,7 +126,7 @@ export default function FloorList({ floors }: { floors: boolean[] }) {
                     />
                   </span>
                 ) : (
-                  "Not Completed"
+                  <span className="sr-only">Not Completed</span>
                 )}
                 {done ? <span className="sr-only">Completed</span> : null}
               </span>
