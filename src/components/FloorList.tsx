@@ -114,7 +114,7 @@ export default function FloorList({ floors }: { floors: boolean[] }) {
                 title={done ? `Floor ${station.floor} completed` : `Floor ${station.floor} not completed`}
                 className={`inline-flex shrink-0 items-center justify-center rounded-xl text-xs font-semibold ${
                   done
-                    ? "h-16 w-16 bg-green-100 text-green-700"
+                    ? "h-16 w-16 bg-brand-blue text-white"
                     : "bg-slate-100 px-3 py-1 text-slate-500"
                 }`}
               >
