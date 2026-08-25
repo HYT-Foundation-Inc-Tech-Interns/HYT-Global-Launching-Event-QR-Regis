@@ -16,8 +16,14 @@ import { PartyPopper } from "lucide-react";
  * their own phones, so the form is sized for one-handed use on a small screen.
  */
 
-// The guest types offered in the dropdown. Edit freely for your event.
-const GUEST_TYPES = ["Student", "Teacher", "Industry Partner", "VIP", "Visitor"];
+// The roles offered in the dropdown. Edit freely for your event.
+const GUEST_TYPES = ["Trainee", "Trainor", "Industry Partner", "VIP", "Visitor"];
+// Add the trainee course names here when they are provided.
+const COURSE_OPTIONS = [
+  "Barista NC II",
+  "Hilot (Wellness) Massage NC II",
+  "Events Management Services NC III",
+];
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -27,6 +33,8 @@ export default function RegisterPage() {
     phone: "",
     organization: "",
     guestType: GUEST_TYPES[0],
+    course: "",
+    purpose: "",
   });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -136,11 +144,13 @@ export default function RegisterPage() {
 
             <div>
               <label className="mb-1 block text-sm font-medium text-slate-700">
-                Guest Type
+                Role
               </label>
               <select
                 value={form.guestType}
-                onChange={(e) => update("guestType", e.target.value)}
+                onChange={(e) => {
+                  update("guestType", e.target.value);
+                }}
                 className="w-full rounded-xl border border-slate-300 px-4 py-3 text-base focus:border-brand-blue focus:outline-none focus:ring-2 focus:ring-brand-blue/30"
               >
                 {GUEST_TYPES.map((t) => (
@@ -151,12 +161,42 @@ export default function RegisterPage() {
               </select>
             </div>
 
+            {(form.guestType === "Trainee" || form.guestType === "Trainor") && (
+              <div>
+                <label className="mb-1 block text-sm font-medium text-slate-700">
+                  Course
+                  {form.guestType === "Trainor" && <span className="text-red-500"> *</span>}
+                </label>
+                <select
+                  required={form.guestType === "Trainor"}
+                  value={form.course}
+                  onChange={(e) => update("course", e.target.value)}
+                  className="w-full rounded-xl border border-slate-300 px-4 py-3 text-base focus:border-brand-blue focus:outline-none focus:ring-2 focus:ring-brand-blue/30"
+                >
+                  <option value="">
+                    {COURSE_OPTIONS.length ? "Select a course" : "Courses coming soon"}
+                  </option>
+                  {COURSE_OPTIONS.map((course) => (
+                    <option key={course} value={course}>
+                      {course}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            <Field
+              label="Purpose"
+              value={form.purpose}
+              onChange={(v) => update("purpose", v)}
+            />
+
             <button
               type="submit"
               disabled={submitting}
               className="w-full rounded-xl bg-[#0C005B] px-4 py-3 text-base font-semibold text-white shadow transition hover:bg-[#080046] disabled:opacity-60"
             >
-              {submitting ? "Registering..." : "Register & Get My Passport"}
+              {submitting ? "Registering..." : "Register & Get My QR Pass"}
             </button>
           </form>
         </div>

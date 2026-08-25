@@ -6,6 +6,7 @@ import { toPng } from "html-to-image";
 import { CheckCircle2, Download, Trophy } from "lucide-react";
 import type { Guest } from "@/lib/types";
 import { TOTAL_FLOORS } from "@/lib/stations";
+import { getValidityLabel } from "@/lib/scanPolicy";
 import ProgressBar from "./ProgressBar";
 import FloorList from "./FloorList";
 
@@ -16,11 +17,21 @@ import FloorList from "./FloorList";
  * The QR code encodes the Passport ID. Staff scanner pages read this value
  * to identify the guest.
  */
-export default function PassportCard({ guest }: { guest: Guest }) {
+export default function PassportCard({
+  guest,
+  showEventDetails,
+}: {
+  guest: Guest;
+  showEventDetails: boolean;
+}) {
   // We capture this DOM node and turn it into a PNG for download.
   const cardRef = useRef<HTMLDivElement>(null);
 
-  const allCompleted = guest.completedCount >= TOTAL_FLOORS;
+  const visibleFloors = showEventDetails ? 3 : TOTAL_FLOORS;
+  const visibleCompleted = showEventDetails
+    ? guest.floors.slice(0, 3).filter(Boolean).length
+    : guest.completedCount;
+  const allCompleted = showEventDetails && visibleCompleted >= visibleFloors;
 
   async function handleDownload() {
     if (!cardRef.current) return;
@@ -57,6 +68,9 @@ export default function PassportCard({ guest }: { guest: Guest }) {
             {guest.passportId}
           </p>
           <p className="text-xs text-white/80">{guest.guestType}</p>
+          <p className="mt-2 text-xs font-semibold text-white/90">
+            {getValidityLabel(guest)}
+          </p>
         </div>
 
         {/* QR code */}
@@ -71,11 +85,12 @@ export default function PassportCard({ guest }: { guest: Guest }) {
           </div>
         </div>
 
-        <div className="space-y-5 px-6 pb-6">
-          <ProgressBar completed={guest.completedCount} total={TOTAL_FLOORS} />
+        {showEventDetails && (
+          <div className="space-y-5 px-6 pb-6">
+            <ProgressBar completed={visibleCompleted} total={visibleFloors} />
 
           {/* Eligibility / congratulations message */}
-          {allCompleted && (
+            {allCompleted && (
             <div className="rounded-xl bg-amber-50 p-4 text-center ring-1 ring-brand-gold/30">
               <Trophy className="mx-auto h-8 w-8 text-brand-gold" aria-hidden="true" />
               <p className="mt-1 text-sm font-semibold text-amber-800">
@@ -92,8 +107,9 @@ export default function PassportCard({ guest }: { guest: Guest }) {
             </div>
           )}
 
-          <FloorList floors={guest.floors} />
-        </div>
+            <FloorList floors={guest.floors} maxFloor={3} />
+          </div>
+        )}
       </div>
 
       {/* Download button (outside the captured card so it isn't in the image) */}

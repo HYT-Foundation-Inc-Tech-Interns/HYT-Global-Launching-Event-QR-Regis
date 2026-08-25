@@ -16,9 +16,9 @@ they become eligible for a certificate of participation or souvenir.
 | Guest Registration | `/register` | Collects guest details, generates a Passport ID, shows the passport |
 | Digital Passport | `/passport/[passportId]` | QR code, progress bar, floor stamps, **guest self-scan button**, download as image |
 | Floor Completion | `/complete/[floor]` | Where guests land after scanning a floor poster with their native camera |
-| Station QR Posters | `/admin/station-codes` | Printable QR codes — one per floor — for staff to post |
+| Station QR Images | `/admin/station-codes` | Protected, labeled QR images for staff to save |
 | Admin Dashboard | `/admin/dashboard` | Totals, searchable guest list, mark reward as claimed |
-| Materials Checklist | `/admin/materials` | Informational event-materials checklist |
+| Administrator Portal | `/admin/login` | Password-protected staff access |
 | Staff Scanner (backup) | `/admin/scan/floor-1` … `floor-5` | Optional: staff scans a guest's passport instead |
 
 The **frontend never touches Google Sheets directly.** All reads/writes go
@@ -166,11 +166,11 @@ From that JSON file you need two values:
    most often forget!
 3. Create **three tabs** named exactly: `Guests`, `Scan Logs`, `Stations`.
 
-### Tab 1: `Guests` — add this header row (row 1, columns A→P)
+### Tab 1: `Guests` — add this header row (row 1, columns A→T)
 
-| A | B | C | D | E | F | G | H | I | J | K | L | M | N | O | P |
+| A | B | C | D | E | F | G | H | I | J | K | L | M | N | O | P | Q | R | S | T |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Passport ID | Full Name | Email | Phone | School/Company | Guest Type | Passport Link | Floor 1 | Floor 2 | Floor 3 | Floor 4 | Floor 5 | Completed Count | Status | Registered At | Last Updated |
+| Passport ID | Full Name | Email | Phone | School/Company | Guest Type | Passport Link | Floor 1 | Floor 2 | Floor 3 | Floor 4 | Floor 5 | Completed Count | Status | Registered At | Last Updated | Course | Purpose | Scan Limit (days) | Scan Enabled |
 
 ### Tab 2: `Scan Logs` — header row (columns A→F)
 
@@ -207,6 +207,7 @@ GOOGLE_SHEET_ID=your-google-sheet-id-here
 GOOGLE_SERVICE_ACCOUNT_EMAIL=hyt-passport@your-project.iam.gserviceaccount.com
 GOOGLE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
 NEXT_PUBLIC_BASE_URL=http://localhost:3000
+ADMIN_PASSWORD=choose-a-private-admin-password
 ```
 
 **About `GOOGLE_PRIVATE_KEY`:** copy the whole `private_key` value from the
@@ -223,7 +224,7 @@ into real newlines at runtime (`src/lib/sheets.ts`).
 
 | Method | Route | Body / Params | Returns |
 | --- | --- | --- | --- |
-| `POST` | `/api/register` | `{ fullName, email, phone, organization, guestType }` | `{ guest }` with new Passport ID + link |
+| `POST` | `/api/register` | `{ fullName, email, phone, organization, guestType, course?, purpose? }` | `{ guest }` with new Passport ID + link |
 | `GET` | `/api/passport/[passportId]` | — | `{ guest }` |
 | `POST` | `/api/stamp` | `{ passportId, stationId, scannerPage? }` | `{ guest }` (409 if already stamped) |
 | `GET` | `/api/admin/guests` | — | `{ summary, guests }` |

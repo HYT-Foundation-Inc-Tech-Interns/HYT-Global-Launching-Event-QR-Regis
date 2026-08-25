@@ -74,7 +74,7 @@ Activity 3: Build Your Career Path
 Interactive touchscreen activity:
 
 Guest selects:
-"Student"
+"Trainee"
 "Professional"
 "Business Owner"
 

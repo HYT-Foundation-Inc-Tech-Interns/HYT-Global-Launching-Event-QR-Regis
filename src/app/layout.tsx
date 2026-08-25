@@ -5,6 +5,9 @@ export const metadata: Metadata = {
   title: "HYT Digital Passport",
   description:
     "QR-based digital passport and registration system for the HYT event.",
+  icons: {
+    icon: "/hyt-global-institute.png",
+  },
 };
 
 export default function RootLayout({

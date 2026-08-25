@@ -4,6 +4,7 @@ import PassportCard from "@/components/PassportCard";
 import PassportScanner from "@/components/PassportScanner";
 import RememberPassport from "@/components/RememberPassport";
 import { getGuestById } from "@/lib/sheets";
+import { canAccessEventScan } from "@/lib/accessPolicy";
 
 /**
  * Digital passport dashboard (/passport/[passportId]).
@@ -54,22 +55,19 @@ export default async function PassportPage({
         {/* Remember this guest on their device for native-camera scans. */}
         <RememberPassport passportId={guest.passportId} />
 
-        {/* Guest self-scan: tap, scan the floor's QR poster, get stamped. */}
-        <PassportScanner passportId={guest.passportId} />
+        {/* Only VIPs and Industry Partners can scan event floor QR codes. */}
+        {canAccessEventScan(guest) && (
+          <PassportScanner passportId={guest.passportId} />
+        )}
 
-        <PassportCard guest={guest} />
-        <p className="mt-6 text-center text-sm text-slate-500">
-          Keep this page open on your phone. Tap{" "}
-          <span className="font-semibold">Scan QR</span> at each floor to
-          collect your stamp.
-        </p>
-        {/* Shortcut for a phone used by more than one guest. */}
-        <p className="mt-3 text-center text-xs text-slate-400">
-          Not {guest.fullName}?{" "}
-          <Link href="/register" className="font-medium underline">
-            Register a different guest
-          </Link>
-        </p>
+        <PassportCard guest={guest} showEventDetails={canAccessEventScan(guest)} />
+        {canAccessEventScan(guest) && (
+          <p className="mt-6 text-center text-sm text-slate-500">
+            Keep this page open on your phone. Tap{" "}
+            <span className="font-semibold">Scan QR</span> at floors 1–3 to
+            collect your stamp.
+          </p>
+        )}
       </section>
     </main>
   );

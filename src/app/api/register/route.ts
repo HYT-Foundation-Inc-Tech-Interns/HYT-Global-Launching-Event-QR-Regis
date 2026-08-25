@@ -25,12 +25,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const guestType = String(body.guestType || "Visitor").trim();
+    const course = String(body.course || "").trim();
+    if (guestType === "Trainor" && !course) {
+      return NextResponse.json(
+        { error: "Trainors must select the course they teach." },
+        { status: 400 },
+      );
+    }
+
     const guest = await appendGuest({
       fullName: String(body.fullName).trim(),
       email: String(body.email).trim(),
       phone: String(body.phone || "").trim(),
       organization: String(body.organization || "").trim(),
-      guestType: String(body.guestType || "Visitor").trim(),
+      guestType,
+      course,
+      purpose: String(body.purpose || "").trim(),
     });
 
     return NextResponse.json({ guest }, { status: 201 });
