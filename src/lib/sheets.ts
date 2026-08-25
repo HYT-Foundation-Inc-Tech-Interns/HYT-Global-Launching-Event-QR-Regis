@@ -24,6 +24,10 @@
  *   N  Status
  *   O  Registered At
  *   P  Last Updated
+ *   Q  Course
+ *   R  Purpose
+ *   S  Scan Limit (days; blank = unlimited)
+ *   T  Scan Enabled (set FALSE to disable)
  */
 
 import type { Guest, GuestStatus, RegistrationInput, ScanLog } from "./types";
@@ -45,7 +49,7 @@ const SCAN_LOGS_TAB = "Scan Logs";
 const COMPLETED_VALUE = "Completed";
 
 // Total number of columns in the Guests tab (A..P = 16).
-const GUEST_COLUMNS = 16;
+const GUEST_COLUMNS = 20;
 
 function getSheetId(): string {
   const id = process.env.GOOGLE_SHEET_ID;
@@ -227,6 +231,9 @@ function rowToGuest(row: string[]): Guest {
     phone: row[3] || "",
     organization: row[4] || "",
     guestType: row[5] || "",
+    course: row[16] || "",
+    purpose: row[17] || "",
+    scanEnabled: (row[19] || "TRUE").trim().toLowerCase() !== "false",
     passportLink: row[6] || "",
     floors,
     completedCount,
@@ -241,7 +248,7 @@ function rowToGuest(row: string[]): Guest {
  * Row 1 is the header, so we start reading from row 2.
  */
 export async function getAllGuests(): Promise<Guest[]> {
-  const rows = await valuesGet(`${GUESTS_TAB}!A2:P`);
+  const rows = await valuesGet(`${GUESTS_TAB}!A2:T`);
   // Skip fully empty rows.
   return rows.filter((r) => r[0]).map((r) => rowToGuest(r as string[]));
 }
@@ -254,7 +261,7 @@ export async function getAllGuests(): Promise<Guest[]> {
 export async function findGuestRow(
   passportId: string
 ): Promise<{ guest: Guest; rowNumber: number } | null> {
-  const rows = await valuesGet(`${GUESTS_TAB}!A2:P`);
+  const rows = await valuesGet(`${GUESTS_TAB}!A2:T`);
   for (let i = 0; i < rows.length; i++) {
     if ((rows[i][0] || "").trim() === passportId.trim()) {
       // +2 because: arrays are 0-based AND we skipped the header row.
@@ -268,6 +275,19 @@ export async function findGuestRow(
 export async function getGuestById(passportId: string): Promise<Guest | null> {
   const result = await findGuestRow(passportId);
   return result ? result.guest : null;
+}
+
+/** Return the calendar days on which a guest has an accepted scan. */
+export async function getGuestScanDays(passportId: string): Promise<string[]> {
+  const rows = await valuesGet(`${SCAN_LOGS_TAB}!A2:F`);
+  return Array.from(
+    new Set(
+      rows
+        .filter((row) => row[1] === passportId && row[4] === "Stamped")
+        .map((row) => (row[0] || "").slice(0, 10))
+        .filter(Boolean),
+    ),
+  );
 }
 
 /**
@@ -328,9 +348,13 @@ export async function appendGuest(
     "Incomplete", // N Status
     now, // O Registered At
     now, // P Last Updated
+    input.course || "", // Q Course
+    input.purpose || "", // R Purpose
+    "", // S Scan Limit (blank = policy default)
+    "TRUE", // T Scan Enabled (admin can set FALSE in Google Sheets)
   ];
 
-  await valuesAppend(`${GUESTS_TAB}!A:P`, [row]);
+  await valuesAppend(`${GUESTS_TAB}!A:T`, [row]);
 
   return {
     passportId,
@@ -339,6 +363,9 @@ export async function appendGuest(
     phone: input.phone,
     organization: input.organization,
     guestType: input.guestType,
+    course: input.course || "",
+    purpose: input.purpose || "",
+    scanEnabled: true,
     passportLink,
     floors: new Array(TOTAL_FLOORS).fill(false),
     completedCount: 0,

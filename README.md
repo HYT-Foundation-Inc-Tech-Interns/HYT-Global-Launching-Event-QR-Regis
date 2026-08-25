@@ -154,11 +154,11 @@ From that JSON file you need two values:
    most often forget!
 3. Create **three tabs** named exactly: `Guests`, `Scan Logs`, `Stations`.
 
-### Tab 1: `Guests` — add this header row (row 1, columns A→P)
+### Tab 1: `Guests` — add this header row (row 1, columns A→T)
 
-| A | B | C | D | E | F | G | H | I | J | K | L | M | N | O | P |
+| A | B | C | D | E | F | G | H | I | J | K | L | M | N | O | P | Q | R | S | T |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Passport ID | Full Name | Email | Phone | School/Company | Guest Type | Passport Link | Floor 1 | Floor 2 | Floor 3 | Floor 4 | Floor 5 | Completed Count | Status | Registered At | Last Updated |
+| Passport ID | Full Name | Email | Phone | School/Company | Guest Type | Passport Link | Floor 1 | Floor 2 | Floor 3 | Floor 4 | Floor 5 | Completed Count | Status | Registered At | Last Updated | Course | Purpose | Scan Limit (days) | Scan Enabled |
 
 ### Tab 2: `Scan Logs` — header row (columns A→F)
 
@@ -212,7 +212,7 @@ into real newlines at runtime (`src/lib/sheets.ts`).
 
 | Method | Route | Body / Params | Returns |
 | --- | --- | --- | --- |
-| `POST` | `/api/register` | `{ fullName, email, phone, organization, guestType }` | `{ guest }` with new Passport ID + link |
+| `POST` | `/api/register` | `{ fullName, email, phone, organization, guestType, course?, purpose? }` | `{ guest }` with new Passport ID + link |
 | `GET` | `/api/passport/[passportId]` | — | `{ guest }` |
 | `POST` | `/api/stamp` | `{ passportId, stationId, scannerPage? }` | `{ guest }` (409 if already stamped) |
 | `GET` | `/api/admin/guests` | — | `{ summary, guests }` |

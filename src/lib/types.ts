@@ -14,7 +14,10 @@ export interface Guest {
   email: string;
   phone: string;
   organization: string; // School / Company
-  guestType: string; // e.g. Student, VIP, Staff, Visitor
+  guestType: string; // e.g. Trainee, Trainor, VIP, Staff, Visitor
+  course: string;
+  purpose: string;
+  scanEnabled: boolean;
   passportLink: string; // e.g. "/passport/HYT-2026-0001"
 
   // One boolean per floor (index 0 = Floor 1, ... index 4 = Floor 5).
@@ -34,6 +37,8 @@ export interface RegistrationInput {
   phone: string;
   organization: string;
   guestType: string;
+  course?: string;
+  purpose?: string;
 }
 
 // One row in the "Scan Logs" sheet tab.

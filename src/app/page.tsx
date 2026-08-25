@@ -47,18 +47,22 @@ export default function HomePage() {
             Explore every station and collect your digital stamps along the way.
           </p>
         </div>
-        <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {STATIONS.map((s) => (
             <div
               key={s.id}
-              className="group relative flex min-h-48 flex-col overflow-hidden rounded-2xl bg-white p-6 shadow-sm ring-1 ring-white/60 transition hover:-translate-y-1 hover:shadow-xl"
+              className="group relative flex flex-col overflow-hidden rounded-2xl bg-white p-4 shadow-sm ring-1 ring-white/60 transition hover:-translate-y-1 hover:shadow-xl"
             >
               <div className="flex items-start justify-between">
                 <div className="text-3xl">{s.icon}</div>
-                <span className="rounded-full bg-[#ffd301] px-3 py-1 text-xs font-bold text-[#0C005B]">0{s.floor}</span>
               </div>
-              <p className="mt-5 font-semibold text-slate-800">{s.name}</p>
-              <p className="mt-2 max-h-24 overflow-y-auto text-sm text-slate-500">
+              <div className="mt-3 flex flex-nowrap items-center justify-between gap-3">
+                <span className="shrink-0 rounded-full bg-[#ffd301] px-3 py-1 text-xs font-bold text-[#0C005B]">
+                  Floor {s.floor}
+                </span>
+                <p className="min-w-0 truncate whitespace-nowrap font-semibold text-slate-800">{s.name}</p>
+              </div>
+              <p className="mt-1 max-h-20 overflow-y-auto text-sm text-slate-500">
                 {s.activity}
               </p>
             </div>

@@ -31,6 +31,8 @@ export async function POST(request: NextRequest) {
       phone: String(body.phone || "").trim(),
       organization: String(body.organization || "").trim(),
       guestType: String(body.guestType || "Visitor").trim(),
+      course: String(body.course || "").trim(),
+      purpose: String(body.purpose || "").trim(),
     });
 
     return NextResponse.json({ guest }, { status: 201 });

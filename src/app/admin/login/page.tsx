@@ -7,6 +7,7 @@ import { LockKeyhole } from "lucide-react";
 
 export default function AdminLoginPage() {
   const router = useRouter();
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -18,7 +19,7 @@ export default function AdminLoginPage() {
     const response = await fetch("/api/admin/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ password }),
+      body: JSON.stringify({ username, password }),
     });
     const result = await response.json();
     if (!response.ok) {
@@ -40,10 +41,22 @@ export default function AdminLoginPage() {
           {error && <p className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</p>}
           <form onSubmit={handleSubmit} className="mt-6 space-y-4">
             <label className="block text-sm font-medium text-slate-700">
+              Username
+              <input
+                type="text"
+                required
+                autoComplete="username"
+                value={username}
+                onChange={(event) => setUsername(event.target.value)}
+                className="mt-1 w-full rounded-xl border border-slate-300 px-4 py-3 text-base focus:border-brand-blue focus:outline-none focus:ring-2 focus:ring-brand-blue/30"
+              />
+            </label>
+            <label className="block text-sm font-medium text-slate-700">
               Password
               <input
                 type="password"
                 required
+                autoComplete="current-password"
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
                 className="mt-1 w-full rounded-xl border border-slate-300 px-4 py-3 text-base focus:border-brand-blue focus:outline-none focus:ring-2 focus:ring-brand-blue/30"
