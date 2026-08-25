@@ -1,17 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
+import { ADMIN_SESSION_COOKIE, isValidAdminSession } from "@/lib/admin-auth";
 
-export function middleware(request: NextRequest) {
-  const path = request.nextUrl.pathname;
-  const isAdminPage = path.startsWith("/admin") && path !== "/admin/login";
-  const isAdminApi = path.startsWith("/api/admin") && path !== "/api/admin/login";
-
-  if ((isAdminPage || isAdminApi) && request.cookies.get("hyt_admin_session")?.value !== "authenticated") {
-    if (isAdminApi) {
-      return NextResponse.json({ error: "Administrator login required." }, { status: 401 });
-    }
-    return NextResponse.redirect(new URL("/admin/login", request.url));
+export async function middleware(request: NextRequest) {
+  // The login page itself must remain public or unauthenticated users would
+  // be redirected back to it forever.
+  if (
+    request.nextUrl.pathname === "/admin/login" ||
+    request.nextUrl.pathname === "/api/admin/login"
+  ) {
+    return NextResponse.next();
   }
-  return NextResponse.next();
+
+  const session = request.cookies.get(ADMIN_SESSION_COOKIE)?.value;
+  if (await isValidAdminSession(session)) return NextResponse.next();
+
+  if (request.nextUrl.pathname.startsWith("/api/admin/")) {
+    return NextResponse.json({ error: "Admin authentication required." }, { status: 401 });
+  }
+
+  const loginUrl = new URL("/admin/login", request.url);
+  loginUrl.searchParams.set("next", request.nextUrl.pathname);
+  return NextResponse.redirect(loginUrl);
 }
 
 export const config = {

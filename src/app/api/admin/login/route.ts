@@ -1,20 +1,39 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import {
+  ADMIN_SESSION_COOKIE,
+  adminSessionMaxAge,
+  createAdminSession,
+  isCorrectAdminCredentials,
+} from "@/lib/admin-auth";
 
-export async function POST(request: Request) {
-  const { password } = await request.json().catch(() => ({}));
-  const expectedPassword = process.env.ADMIN_PASSWORD;
+function safeDestination(value: string): string {
+  return value.startsWith("/admin/") && !value.startsWith("//") ? value : "/admin/dashboard";
+}
 
-  if (!expectedPassword || password !== expectedPassword) {
-    return NextResponse.json({ error: "Invalid administrator password." }, { status: 401 });
+export async function POST(request: NextRequest) {
+  const body = await request.json().catch(() => null);
+  const username = typeof body?.username === "string" ? body.username.trim() : "";
+  const password = typeof body?.password === "string" ? body.password : "";
+
+  if (!(await isCorrectAdminCredentials(username, password))) {
+    return NextResponse.json({ error: "Incorrect admin username or password." }, { status: 401 });
   }
 
-  const response = NextResponse.json({ ok: true });
-  response.cookies.set("hyt_admin_session", "authenticated", {
+  const session = await createAdminSession();
+  if (!session) {
+    console.error("Admin login is not configured: missing ADMIN_SESSION_SECRET.");
+    return NextResponse.json({ error: "Admin login is not configured." }, { status: 503 });
+  }
+
+  const response = NextResponse.json({ destination: safeDestination(String(body?.next ?? "")) });
+  response.cookies.set({
+    name: ADMIN_SESSION_COOKIE,
+    value: session,
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
-    maxAge: 60 * 60 * 12,
     path: "/",
+    maxAge: adminSessionMaxAge,
   });
   return response;
 }
