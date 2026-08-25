@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Printer } from "lucide-react";
+import { ArrowRight, LockKeyhole } from "lucide-react";
 import Header from "@/components/Header";
 import HomeGate from "@/components/HomeGate";
 import { STATIONS } from "@/lib/stations";
@@ -38,19 +38,26 @@ export default function HomePage() {
         </div>
 
         {/* Floor overview */}
-        <h2 className="mt-12 text-xl font-bold text-white">
-          Floors & Stations
-        </h2>
-        <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-14 flex items-end justify-between gap-4">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#ffd301]">Your route</p>
+            <h2 className="mt-1 text-2xl font-bold text-white">Floors & Stations</h2>
+          </div>
+          <p className="hidden max-w-xs text-right text-sm text-white/70 sm:block">
+            Explore every station and collect your digital stamps along the way.
+          </p>
+        </div>
+        <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {STATIONS.map((s) => (
             <div
               key={s.id}
-              className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200 flex flex-col"
+              className="group relative flex min-h-48 flex-col overflow-hidden rounded-2xl bg-white p-6 shadow-sm ring-1 ring-white/60 transition hover:-translate-y-1 hover:shadow-xl"
             >
-              <div className="text-3xl">{s.icon}</div>
-              <p className="mt-2 font-semibold text-slate-800">
-                Floor {s.floor}: {s.name}
-              </p>
+              <div className="flex items-start justify-between">
+                <div className="text-3xl">{s.icon}</div>
+                <span className="rounded-full bg-[#ffd301] px-3 py-1 text-xs font-bold text-[#0C005B]">0{s.floor}</span>
+              </div>
+              <p className="mt-5 font-semibold text-slate-800">{s.name}</p>
               <p className="mt-2 max-h-24 overflow-y-auto text-sm text-slate-500">
                 {s.activity}
               </p>
@@ -81,20 +88,14 @@ export default function HomePage() {
           </ol>
         </div>
 
-        <div className="mt-8 flex flex-wrap justify-center gap-6 text-center">
+        <div className="mt-8 flex justify-center text-center">
           <Link
-            href="/admin/station-codes"
-            className="text-sm font-medium text-brand-purple hover:underline"
+            href="/admin/login"
+            className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-semibold text-brand-purple shadow-sm ring-1 ring-slate-200 hover:bg-slate-50"
           >
-            <Printer className="mr-1 inline h-4 w-4" aria-hidden="true" />
-            Print station QR codes (staff)
-            <ArrowRight className="ml-1 inline h-4 w-4" aria-hidden="true" />
-          </Link>
-          <Link
-            href="/admin/materials"
-            className="text-sm font-medium text-slate-500 hover:underline"
-          >
-            View event materials checklist →
+            <LockKeyhole className="h-4 w-4" aria-hidden="true" />
+            Administrator Portal
+            <ArrowRight className="h-4 w-4" aria-hidden="true" />
           </Link>
         </div>
       </section>

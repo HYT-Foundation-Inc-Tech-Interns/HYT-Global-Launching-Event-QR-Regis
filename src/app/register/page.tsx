@@ -156,7 +156,7 @@ export default function RegisterPage() {
               disabled={submitting}
               className="w-full rounded-xl bg-[#0C005B] px-4 py-3 text-base font-semibold text-white shadow transition hover:bg-[#080046] disabled:opacity-60"
             >
-              {submitting ? "Registering..." : "Register & Get My Passport"}
+              {submitting ? "Registering..." : "Register & Get My QR Pass"}
             </button>
           </form>
         </div>
