@@ -29,6 +29,12 @@
 import type { Guest, GuestStatus, RegistrationInput, ScanLog } from "./types";
 import { TOTAL_FLOORS } from "./stations";
 
+// SPREADSHEET DATABASE PLUGIN INTEGRATION POINT:
+// Put any Google Sheets, Airtable, or other spreadsheet-database plugin/client
+// setup in this file. Keep credentials and all reads/writes on the server;
+// API routes should continue to import the functions below instead of letting
+// browser components connect to the spreadsheet directly.
+
 /*
  * Transport note:
  * We talk to the Google Sheets REST API directly with `fetch`, and sign the
@@ -40,6 +46,7 @@ import { TOTAL_FLOORS } from "./stations";
 // --- Sheet tab names. Change these if you renamed your tabs. ---
 const GUESTS_TAB = "Guests";
 const SCAN_LOGS_TAB = "Scan Logs";
+const ADMIN_LOGIN_TABS = ["Admin Login", "Admin", "Admin Credentials", "Login"];
 
 // The value we write into a floor cell once a guest completes it.
 const COMPLETED_VALUE = "Completed";
@@ -467,4 +474,33 @@ export async function appendScanLog(log: ScanLog): Promise<void> {
       log.scannerPage,
     ],
   ]);
+}
+
+/**
+ * Read admin login credentials from a dedicated sheet tab, if present.
+ * Expected format on the first row:
+ *   A1 = username
+ *   B1 = password
+ *   C1 = date created
+ */
+export async function getAdminLoginCredentials(): Promise<{
+  username: string;
+  password: string;
+} | null> {
+  for (const tab of ADMIN_LOGIN_TABS) {
+    try {
+      const rows = await valuesGet(`${tab}!A1:C1`);
+      const row = rows[0] ?? [];
+      const username = String(row[0] ?? "").trim();
+      const password = String(row[1] ?? "").trim();
+
+      if (username && password) {
+        return { username, password };
+      }
+    } catch {
+      // The admin credentials tab may not exist yet or may not be shared.
+      // Fall through to the next possible tab name.
+    }
+  }
+  return null;
 }

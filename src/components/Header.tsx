@@ -23,7 +23,7 @@ export default function Header({ subtitle }: { subtitle?: string }) {
         </Link>
         <nav className="flex items-center gap-3 text-sm font-medium">
           <ProfileMenu />
-          <Link href="/admin/dashboard" className="hover:underline">
+          <Link href="/admin/login" className="hover:underline">
             Admin
           </Link>
         </nav>
