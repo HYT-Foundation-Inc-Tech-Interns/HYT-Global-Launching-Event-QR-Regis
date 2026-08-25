@@ -46,7 +46,15 @@ import { TOTAL_FLOORS } from "./stations";
 // --- Sheet tab names. Change these if you renamed your tabs. ---
 const GUESTS_TAB = "Guests";
 const SCAN_LOGS_TAB = "Scan Logs";
-const ADMIN_LOGIN_TABS = ["Admin Login"];
+const ADMIN_LOGIN_TABS = [
+  "Admin Login",
+  "admin login",
+  "Admin login",
+  "Admin",
+  "admin",
+  "Login",
+  "login",
+];
 
 // The value we write into a floor cell once a guest completes it.
 const COMPLETED_VALUE = "Completed";
@@ -477,7 +485,7 @@ export async function appendScanLog(log: ScanLog): Promise<void> {
 }
 
 /**
- * Read admin login credentials from the dedicated admin tab.
+-m  * Read admin login credentials from the dedicated admin tab.
  * Expected format starting at row 2:
  *   A2 = username
  *   B2 = password
