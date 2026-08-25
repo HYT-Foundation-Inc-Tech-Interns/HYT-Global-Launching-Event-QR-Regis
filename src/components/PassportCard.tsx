@@ -6,6 +6,7 @@ import { toPng } from "html-to-image";
 import { CheckCircle2, Download, Trophy } from "lucide-react";
 import type { Guest } from "@/lib/types";
 import { TOTAL_FLOORS } from "@/lib/stations";
+import { getValidityLabel } from "@/lib/scanPolicy";
 import ProgressBar from "./ProgressBar";
 import FloorList from "./FloorList";
 
@@ -67,6 +68,9 @@ export default function PassportCard({
             {guest.passportId}
           </p>
           <p className="text-xs text-white/80">{guest.guestType}</p>
+          <p className="mt-2 text-xs font-semibold text-white/90">
+            {getValidityLabel(guest)}
+          </p>
         </div>
 
         {/* QR code */}

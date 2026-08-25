@@ -513,10 +513,10 @@ export async function appendScanLog(log: ScanLog): Promise<void> {
 
 /**
 -m  * Read admin login credentials from the dedicated admin tab.
- * Expected format starting at row 2:
- *   A2 = username
- *   B2 = password
- *   C2 = optional created date
+ * Expected format starting at row 1:
+ *   A1 = username
+ *   B1 = password
+ *   C1 = optional created date
  *
  * Multiple users can exist in the sheet; the function checks all rows and
  * matches the submitted username/password pair.
@@ -527,7 +527,7 @@ export async function getAdminLoginCredentials(
 ): Promise<{ username: string; password: string } | null> {
   for (const tab of ADMIN_LOGIN_TABS) {
     try {
-      const rows = await valuesGet(`${tab}!A2:B`);
+      const rows = await valuesGet(`${tab}!A1:B`);
 
       for (const row of rows) {
         const sheetUsername = String(row[0] ?? "").trim();
