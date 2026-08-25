@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowRight, LockKeyhole } from "lucide-react";
 import Header from "@/components/Header";
 import HomeGate from "@/components/HomeGate";
+import LandingCta from "@/components/LandingCta";
 import { STATIONS } from "@/lib/stations";
 
 /**
@@ -28,12 +29,7 @@ export default function HomePage() {
           </h4>
           
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Link
-              href="/register"
-              className="w-full rounded-xl bg-[#0C005B] px-6 py-3 font-semibold text-white shadow transition hover:bg-[#ffd301] hover:text-[#0C005B] sm:w-auto"
-            >
-              Register as a Guest
-            </Link>
+            <LandingCta />
           </div>
         </div>
 

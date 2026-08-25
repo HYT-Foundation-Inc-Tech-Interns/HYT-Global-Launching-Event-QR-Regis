@@ -150,7 +150,6 @@ export default function RegisterPage() {
                 value={form.guestType}
                 onChange={(e) => {
                   update("guestType", e.target.value);
-                  if (e.target.value !== "Trainee") update("course", "");
                 }}
                 className="w-full rounded-xl border border-slate-300 px-4 py-3 text-base focus:border-brand-blue focus:outline-none focus:ring-2 focus:ring-brand-blue/30"
               >
@@ -162,12 +161,14 @@ export default function RegisterPage() {
               </select>
             </div>
 
-            {form.guestType === "Trainee" && (
+            {(form.guestType === "Trainee" || form.guestType === "Trainor") && (
               <div>
                 <label className="mb-1 block text-sm font-medium text-slate-700">
                   Course
+                  {form.guestType === "Trainor" && <span className="text-red-500"> *</span>}
                 </label>
                 <select
+                  required={form.guestType === "Trainor"}
                   value={form.course}
                   onChange={(e) => update("course", e.target.value)}
                   className="w-full rounded-xl border border-slate-300 px-4 py-3 text-base focus:border-brand-blue focus:outline-none focus:ring-2 focus:ring-brand-blue/30"

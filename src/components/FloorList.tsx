@@ -35,7 +35,7 @@ function isHeaderLine(line: string, prevLine: string): boolean {
  * Lists every floor/station with a "Completed" or "Not Completed" status.
  * Completed floors show their digital stamp icon.
  */
-export default function FloorList({ floors }: { floors: boolean[] }) {
+export default function FloorList({ floors, maxFloor }: { floors: boolean[]; maxFloor?: number }) {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   function toggleFloor(index: number) {
@@ -44,7 +44,7 @@ export default function FloorList({ floors }: { floors: boolean[] }) {
 
   return (
     <ul className="space-y-3">
-      {STATIONS.map((station, index) => {
+      {STATIONS.filter((station) => !maxFloor || station.floor <= maxFloor).map((station, index) => {
         const done = floors[index];
         const open = openIndex === index;
         const description = station.description ?? "";

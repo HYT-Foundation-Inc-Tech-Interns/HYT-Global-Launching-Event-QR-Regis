@@ -60,7 +60,7 @@ export default async function PassportPage({
           <PassportScanner passportId={guest.passportId} />
         )}
 
-        <PassportCard guest={guest} />
+        <PassportCard guest={guest} showEventDetails={canAccessEventScan(guest)} />
         {canAccessEventScan(guest) && (
           <p className="mt-6 text-center text-sm text-slate-500">
             Keep this page open on your phone. Tap{" "}
@@ -68,13 +68,6 @@ export default async function PassportPage({
             collect your stamp.
           </p>
         )}
-        {/* Shortcut for a phone used by more than one guest. */}
-        <p className="mt-3 text-center text-xs text-slate-400">
-          Not {guest.fullName}?{" "}
-          <Link href="/register" className="font-medium underline">
-            Register a different guest
-          </Link>
-        </p>
       </section>
     </main>
   );
