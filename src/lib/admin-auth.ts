@@ -103,13 +103,11 @@ export async function isCorrectAdminCredentials(
   const trimmedPassword = password.trim();
   if (!trimmedUsername || !trimmedPassword) return false;
 
-  const sheetCredentials = await getAdminLoginCredentials();
-  if (!sheetCredentials) return false;
-
-  return (
-    trimmedUsername === sheetCredentials.username.trim() &&
-    trimmedPassword === sheetCredentials.password.trim()
+  const sheetCredentials = await getAdminLoginCredentials(
+    trimmedUsername,
+    trimmedPassword
   );
+  return Boolean(sheetCredentials);
 }
 
 export const adminSessionMaxAge = SESSION_LIFETIME_SECONDS;

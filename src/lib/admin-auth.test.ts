@@ -25,15 +25,23 @@ test("always validates admin login against the Google Sheet credentials", async 
     }
 
     if (url.includes("sheets.googleapis.com")) {
-      return new Response(JSON.stringify({ values: [["A1", "b1", "2026-08-25"]] }));
+      return new Response(
+        JSON.stringify({
+          values: [
+            ["admin1", "pass1", "2026-08-25"],
+            ["admin2", "pass2", "2026-08-25"],
+          ],
+        })
+      );
     }
 
     throw new Error(`Unexpected fetch: ${url}`);
   }) as typeof fetch;
 
   try {
-    assert.equal(await isCorrectAdminCredentials("A1", "b1"), true);
-    assert.equal(await isCorrectAdminCredentials("A1", "wrongpass"), false);
+    assert.equal(await isCorrectAdminCredentials("admin1", "pass1"), true);
+    assert.equal(await isCorrectAdminCredentials("admin2", "pass2"), true);
+    assert.equal(await isCorrectAdminCredentials("admin2", "wrongpass"), false);
   } finally {
     global.fetch = originalFetch;
     delete process.env.ADMIN_USERNAME;

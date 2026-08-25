@@ -504,25 +504,42 @@ export async function appendScanLog(log: ScanLog): Promise<void> {
 }
 
 /**
- * Read admin login credentials from a dedicated sheet tab, if present.
- * Expected format on the first row:
- *   A1 = username
- *   B1 = password
- *   C1 = date created
+ * Read admin login credentials from the dedicated admin tab.
+ * Expected format starting at row 2:
+ *   A2 = username
+ *   B2 = password
+ *   C2 = optional created date
+ *
+ * Multiple users can exist in the sheet; the function checks all rows and
+ * matches the submitted username/password pair.
  */
-export async function getAdminLoginCredentials(): Promise<{
-  username: string;
-  password: string;
-} | null> {
+export async function getAdminLoginCredentials(
+  username?: string,
+  password?: string
+): Promise<{ username: string; password: string } | null> {
   for (const tab of ADMIN_LOGIN_TABS) {
     try {
-      const rows = await valuesGet(`${tab}!A1:C1`);
-      const row = rows[0] ?? [];
-      const username = String(row[0] ?? "").trim();
-      const password = String(row[1] ?? "").trim();
+      const rows = await valuesGet(`${tab}!A2:B`);
 
-      if (username && password) {
-        return { username, password };
+      for (const row of rows) {
+        const sheetUsername = String(row[0] ?? "").trim();
+        const sheetPassword = String(row[1] ?? "").trim();
+
+        if (!sheetUsername && !sheetPassword) continue;
+
+        if (username && password) {
+          if (
+            sheetUsername === username.trim() &&
+            sheetPassword === password.trim()
+          ) {
+            return { username: sheetUsername, password: sheetPassword };
+          }
+          continue;
+        }
+
+        if (sheetUsername && sheetPassword) {
+          return { username: sheetUsername, password: sheetPassword };
+        }
       }
     } catch {
       // The admin credentials tab may not exist yet or may not be shared.
