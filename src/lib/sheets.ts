@@ -46,7 +46,7 @@ import { TOTAL_FLOORS } from "./stations";
 // --- Sheet tab names. Change these if you renamed your tabs. ---
 const GUESTS_TAB = "Guests";
 const SCAN_LOGS_TAB = "Scan Logs";
-const ADMIN_LOGIN_TABS = ["Admin Login", "Admin", "Admin Credentials", "Login"];
+const ADMIN_LOGIN_TABS = "Admin Login";
 
 // The value we write into a floor cell once a guest completes it.
 const COMPLETED_VALUE = "Completed";
