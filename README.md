@@ -24,6 +24,18 @@ they become eligible for a certificate of participation or souvenir.
 The **frontend never touches Google Sheets directly.** All reads/writes go
 through backend API routes under `/api/*`, which use a Google service account.
 
+Admin pages require a shared password. Add these server-only variables to
+`.env.local` and your deployment provider's environment settings:
+
+```env
+ADMIN_PASSWORD=choose-a-long-unique-password
+ADMIN_SESSION_SECRET=use-a-different-long-random-secret
+```
+
+The spreadsheet database integration belongs in `src/lib/sheets.ts`, marked
+with `SPREADSHEET DATABASE PLUGIN INTEGRATION POINT`. Do not place spreadsheet
+credentials in a client component or use `NEXT_PUBLIC_` for them.
+
 ## 🔄 How guests collect stamps
 
 Guests scan the **floor's posted QR code themselves** — no staff needed:
@@ -244,9 +256,8 @@ into real newlines at runtime (`src/lib/sheets.ts`).
 
 ## ⚠️ Notes & Limitations (MVP)
 
-- The admin pages are **not password-protected** in this MVP. Before a public
-  event, add authentication (e.g. a simple shared password / middleware) to
-  `/admin/*` routes.
+- Admin routes use a shared, eight-hour password session. Set
+  `ADMIN_PASSWORD` and `ADMIN_SESSION_SECRET` before deploying.
 - Passport IDs are sequential based on row count. For a single registration
   desk this is fine; very high concurrent registrations could theoretically
   collide — acceptable for an MVP.
