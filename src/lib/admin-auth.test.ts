@@ -4,8 +4,9 @@ import { generateKeyPairSync } from "node:crypto";
 import { isCorrectAdminCredentials } from "./admin-auth";
 
 test("always validates admin login against the Google Sheet credentials", async () => {
-  process.env.ADMIN_USERNAME = "should-not-use-env";
-  process.env.ADMIN_PASSWORD = "should-not-use-env";
+  delete process.env.ADMIN_USERNAME;
+  delete process.env.ADMIN_PASSWORD;
+  delete process.env.ADMIN_SESSION_SECRET;
   process.env.GOOGLE_SHEET_ID = "sheet-id-123";
   process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL = "service@example.com";
 
@@ -46,6 +47,7 @@ test("always validates admin login against the Google Sheet credentials", async 
     global.fetch = originalFetch;
     delete process.env.ADMIN_USERNAME;
     delete process.env.ADMIN_PASSWORD;
+    delete process.env.ADMIN_SESSION_SECRET;
     delete process.env.GOOGLE_SHEET_ID;
     delete process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
     delete process.env.GOOGLE_PRIVATE_KEY;

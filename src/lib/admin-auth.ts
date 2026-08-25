@@ -33,7 +33,7 @@ function fromBase64Url(value: string): Uint8Array | null {
 }
 
 function getSessionSecret(): string | null {
-  return process.env.ADMIN_SESSION_SECRET || null;
+  return process.env.ADMIN_SESSION_SECRET || "hyt-admin-session-secret-fallback";
 }
 
 async function sign(value: string): Promise<string | null> {
