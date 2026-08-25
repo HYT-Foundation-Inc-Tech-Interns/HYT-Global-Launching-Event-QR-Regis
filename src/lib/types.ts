@@ -14,7 +14,7 @@ export interface Guest {
   email: string;
   phone: string;
   organization: string; // School / Company
-  guestType: string; // e.g. Trainee, Trainor, VIP, Staff, Visitor
+  guestType: string; // e.g. Student, VIP, Staff, Visitor
   course: string;
   purpose: string;
   scanEnabled: boolean;
