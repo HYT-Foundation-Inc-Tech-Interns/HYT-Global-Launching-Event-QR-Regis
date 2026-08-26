@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Header from "@/components/Header";
 import type { Guest } from "@/lib/types";
+import { getAccountStatus } from "@/lib/scanPolicy";
 
 /**
  * Admin dashboard (/admin/dashboard).
@@ -27,6 +28,7 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
+  const [accountFilter, setAccountFilter] = useState<"all" | "active" | "inactive" | "expired">("all");
   const [claiming, setClaiming] = useState<string | null>(null);
 
   async function load() {
@@ -52,13 +54,16 @@ export default function AdminDashboard() {
   const filtered = useMemo(() => {
     if (!data) return [];
     const q = search.trim().toLowerCase();
-    if (!q) return data.guests;
     return data.guests.filter(
-      (g) =>
-        g.fullName.toLowerCase().includes(q) ||
-        g.passportId.toLowerCase().includes(q)
+      (g) => {
+        const matchesSearch =
+          g.fullName.toLowerCase().includes(q) ||
+          g.passportId.toLowerCase().includes(q);
+        const status = getAccountStatus(g).toLowerCase();
+        return matchesSearch && (accountFilter === "all" || status === accountFilter);
+      }
     );
-  }, [data, search]);
+  }, [data, search, accountFilter]);
 
   async function claim(passportId: string) {
     setClaiming(passportId);
@@ -92,6 +97,9 @@ export default function AdminDashboard() {
           >
             ⟳ Refresh
           </button>
+          <Link href="/admin/settings" className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
+            Course settings
+          </Link>
         </div>
 
         {/* Summary cards */}
@@ -121,6 +129,16 @@ export default function AdminDashboard() {
             placeholder="Search by name or Passport ID..."
             className="w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-brand-blue focus:outline-none focus:ring-2 focus:ring-brand-blue/30"
           />
+          <select
+            value={accountFilter}
+            onChange={(e) => setAccountFilter(e.target.value as typeof accountFilter)}
+            className="mt-3 w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-brand-blue focus:outline-none focus:ring-2 focus:ring-brand-blue/30"
+          >
+            <option value="all">All account statuses</option>
+            <option value="active">Active accounts</option>
+            <option value="inactive">Inactive accounts</option>
+            <option value="expired">Expired accounts</option>
+          </select>
         </div>
 
         {error && (
@@ -138,13 +156,14 @@ export default function AdminDashboard() {
                 <th className="px-4 py-3">Name</th>
                 <th className="px-4 py-3">Floors</th>
                 <th className="px-4 py-3">Status</th>
+                <th className="px-4 py-3">Account</th>
                 <th className="px-4 py-3">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {loading && (
                 <tr>
-                  <td colSpan={5} className="px-4 py-8 text-center text-slate-400">
+                  <td colSpan={6} className="px-4 py-8 text-center text-slate-400">
                     Loading guests...
                   </td>
                 </tr>
@@ -152,7 +171,7 @@ export default function AdminDashboard() {
 
               {!loading && filtered.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-4 py-8 text-center text-slate-400">
+                  <td colSpan={6} className="px-4 py-8 text-center text-slate-400">
                     No guests found.
                   </td>
                 </tr>
@@ -179,6 +198,12 @@ export default function AdminDashboard() {
                   </td>
                   <td className="px-4 py-3">
                     <StatusBadge status={g.status} />
+                  </td>
+                  <td className="px-4 py-3 text-xs">
+                    <span className={getAccountStatus(g) === "Active" ? "font-semibold text-green-700" : "font-semibold text-red-700"}>
+                      {getAccountStatus(g)}
+                    </span>
+                    {g.validUntil && <span className="block text-slate-400">Until {g.validUntil}</span>}
                   </td>
                   <td className="px-4 py-3">
                     {g.completedCount >= totalFloors &&

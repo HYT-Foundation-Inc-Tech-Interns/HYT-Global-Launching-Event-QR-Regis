@@ -16,7 +16,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getGuestById, getGuestScanDays, stampFloor, appendScanLog } from "@/lib/sheets";
 import { getStationById } from "@/lib/stations";
-import { getScanPolicy } from "@/lib/scanPolicy";
+import { getScanPolicy, isGuestAccountActive } from "@/lib/scanPolicy";
 import { canScanStation } from "@/lib/accessPolicy";
 
 export const dynamic = "force-dynamic";
@@ -48,6 +48,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: "Guest not found. Please check the QR code." },
         { status: 404 },
+      );
+    }
+
+    if (!isGuestAccountActive(currentGuest)) {
+      return NextResponse.json(
+        { error: "This guest account is inactive or expired." },
+        { status: 403 },
       );
     }
 

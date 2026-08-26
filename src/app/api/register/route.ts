@@ -7,7 +7,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { appendGuest } from "@/lib/sheets";
+import { appendGuest, getCourseSetting } from "@/lib/sheets";
 import type { RegistrationInput } from "@/lib/types";
 
 // Always run on the server at request time (never statically cached).
@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
       guestType,
       course,
       purpose: String(body.purpose || "").trim(),
-    });
+    }, await getCourseSetting(course));
 
     return NextResponse.json({ guest }, { status: 201 });
   } catch (err) {
