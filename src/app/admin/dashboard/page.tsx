@@ -98,16 +98,16 @@ export default function AdminDashboard() {
           >
             ⟳ Refresh
           </button>
-          <Link href="/admin/settings" className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
+          <Link href="/admin/settings" className="rounded-lg border border-white/60 px-4 py-2 text-sm font-medium text-white hover:bg-white/10">
             Course settings
           </Link>
-          <Link href="/admin/scan" className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
+          <Link href="/admin/scan" className="rounded-lg border border-white/60 px-4 py-2 text-sm font-medium text-white hover:bg-white/10">
             Scan guest QR
           </Link>
         </div>
 
         {/* Summary cards */}
-        <div className="mt-5 grid gap-4 sm:grid-cols-3">
+        <div className="mt-5 grid gap-4 sm:grid-cols-2">
           <StatCard
             label="Total Registered"
             value={data?.summary.totalGuests ?? "—"}
