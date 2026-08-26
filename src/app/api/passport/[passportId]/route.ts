@@ -7,6 +7,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getGuestById } from "@/lib/sheets";
+import { isGuestAccountActive } from "@/lib/scanPolicy";
 
 export const dynamic = "force-dynamic";
 
@@ -22,6 +23,13 @@ export async function GET(
       return NextResponse.json(
         { error: "Passport not found." },
         { status: 404 }
+      );
+    }
+
+    if (!isGuestAccountActive(guest)) {
+      return NextResponse.json(
+        { error: "This guest account is inactive or expired." },
+        { status: 403 },
       );
     }
 

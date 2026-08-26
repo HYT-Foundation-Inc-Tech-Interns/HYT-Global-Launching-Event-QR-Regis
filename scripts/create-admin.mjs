@@ -11,9 +11,10 @@ for (let index = 2; index < process.argv.length; index += 2) {
 
 const username = args.get("username")?.trim();
 const password = args.get("password");
+const useLocalDatabase = process.argv.includes("--local");
 if (!username || !password) {
   console.error(
-    'Usage: npm run create-admin -- --username admin --password "choose-a-password"'
+    'Usage: npm run create-admin -- --username admin --password "choose-a-password" [--local]'
   );
   process.exit(1);
 }
@@ -32,7 +33,7 @@ const result = spawnSync(
     "d1",
     "execute",
     "hytglobal_db",
-    "--remote",
+    useLocalDatabase ? "--local" : "--remote",
     "--command",
     sql,
   ],

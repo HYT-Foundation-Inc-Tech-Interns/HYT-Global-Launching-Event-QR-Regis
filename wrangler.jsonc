@@ -15,14 +15,12 @@
 			"binding": "DB",
 			"database_name": "hytglobal_db",
 			"database_id": "5827efea-4c65-4d3a-9b96-4d7273ed4084",
-			"remote": true,
 			"migrations_dir": "drizzle"
 		},
 		{
 			"binding": "GLBE_Admin_db",
 			"database_name": "hytglobal_db",
 			"database_id": "5827efea-4c65-4d3a-9b96-4d7273ed4084",
-			"remote": true,
 			"migrations_dir": "drizzle"
 		}
 	]

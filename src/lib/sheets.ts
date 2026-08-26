@@ -5,9 +5,9 @@
  * import from here. The frontend never touches Google Sheets directly.
  *
  * The "Guests" tab is treated like a tiny database table. Each guest is
- * one row. Columns A..P map to the fields described in the README.
+ * one row. Columns A..V map to the fields described below.
  *
- * Guests tab columns (A..P):
+ * Guests tab columns (A..V):
  *   A  Passport ID
  *   B  Full Name
  *   C  Email
@@ -28,9 +28,11 @@
  *   R  Purpose
  *   S  Scan Limit (days; blank = unlimited)
  *   T  Scan Enabled (set FALSE to disable)
+ *   U  Account Active (set FALSE to disable the guest account)
+ *   V  Valid Until (YYYY-MM-DD; blank = no expiry)
  */
 
-import type { Guest, GuestStatus, RegistrationInput, ScanLog } from "./types";
+import type { CourseSetting, Guest, GuestStatus, RegistrationInput, ScanLog } from "./types";
 import { TOTAL_FLOORS } from "./stations";
 
 // SPREADSHEET DATABASE PLUGIN INTEGRATION POINT:
@@ -50,13 +52,14 @@ import { TOTAL_FLOORS } from "./stations";
 // --- Sheet tab names. Change these if you renamed your tabs. ---
 const GUESTS_TAB = "Guests";
 const SCAN_LOGS_TAB = "Scan Logs";
+const ADMIN_SETTINGS_TAB = "Admin Settings";
 const ADMIN_LOGIN_TABS = ["Admin Login"];
 
 // The value we write into a floor cell once a guest completes it.
 const COMPLETED_VALUE = "Completed";
 
-// Total number of columns in the Guests tab (A..P = 16).
-const GUEST_COLUMNS = 20;
+// Total number of columns in the Guests tab (A..V = 22).
+const GUEST_COLUMNS = 22;
 const ADMIN_TABS = 3;
 function getSheetId(): string {
   const id = process.env.GOOGLE_SHEET_ID;
@@ -71,6 +74,7 @@ function getSheetId(): string {
 const TOKEN_ENDPOINT = "https://oauth2.googleapis.com/token";
 const SHEETS_BASE = "https://sheets.googleapis.com/v4/spreadsheets";
 const SCOPE = "https://www.googleapis.com/auth/spreadsheets";
+const ADMIN_SETTINGS_SHEET_ID = 987654321;
 
 // Cache the access token between calls within an isolate to avoid re-signing
 // on every Sheets request. Tokens are valid for ~1 hour.
@@ -217,6 +221,43 @@ async function valuesUpdate(
   }
 }
 
+async function valuesClear(range: string): Promise<void> {
+  const token = await getAccessToken();
+  const url = `${SHEETS_BASE}/${getSheetId()}/values/${encodeURIComponent(range)}:clear`;
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    body: "{}",
+  });
+  if (!res.ok) {
+    throw new Error(`Sheets clear failed (${res.status}): ${await res.text()}`);
+  }
+}
+
+async function ensureAdminSettingsTab(): Promise<void> {
+  const token = await getAccessToken();
+  const spreadsheetId = getSheetId();
+  const metadataResponse = await fetch(
+    `${SHEETS_BASE}/${spreadsheetId}?fields=sheets.properties.title`,
+    { headers: { Authorization: `Bearer ${token}` } },
+  );
+  if (!metadataResponse.ok) {
+    throw new Error(`Sheets metadata request failed (${metadataResponse.status}): ${await metadataResponse.text()}`);
+  }
+  const metadata = (await metadataResponse.json()) as { sheets?: { properties?: { title?: string } }[] };
+  if (metadata.sheets?.some((sheet) => sheet.properties?.title === ADMIN_SETTINGS_TAB)) return;
+
+  const response = await fetch(`${SHEETS_BASE}/${spreadsheetId}:batchUpdate`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ requests: [{ addSheet: { properties: { sheetId: ADMIN_SETTINGS_SHEET_ID, title: ADMIN_SETTINGS_TAB } } }] }),
+  });
+  if (!response.ok && response.status !== 400) {
+    throw new Error(`Sheets tab creation failed (${response.status}): ${await response.text()}`);
+  }
+  await valuesUpdate(`${ADMIN_SETTINGS_TAB}!A1:D1`, [["Course", "Scan Limit Days", "Valid Until", "Active"]]);
+}
+
 /**
  * Convert one spreadsheet row (array of cell values) into a Guest object.
  * Empty/missing cells are handled gracefully.
@@ -240,7 +281,10 @@ function rowToGuest(row: string[]): Guest {
     guestType: row[5] || "",
     course: row[16] || "",
     purpose: row[17] || "",
+    scanLimitDays: row[18]?.trim() ? Math.max(0, Number(row[18])) : null,
     scanEnabled: (row[19] || "TRUE").trim().toLowerCase() !== "false",
+    accountActive: (row[20] || "TRUE").trim().toLowerCase() !== "false",
+    validUntil: (row[21] || "").trim(),
     passportLink: row[6] || "",
     floors,
     completedCount,
@@ -255,7 +299,7 @@ function rowToGuest(row: string[]): Guest {
  * Row 1 is the header, so we start reading from row 2.
  */
 export async function getAllGuests(): Promise<Guest[]> {
-  const rows = await valuesGet(`${GUESTS_TAB}!A2:T`);
+  const rows = await valuesGet(`${GUESTS_TAB}!A2:V`);
   // Skip fully empty rows.
   return rows.filter((r) => r[0]).map((r) => rowToGuest(r as string[]));
 }
@@ -268,7 +312,7 @@ export async function getAllGuests(): Promise<Guest[]> {
 export async function findGuestRow(
   passportId: string
 ): Promise<{ guest: Guest; rowNumber: number } | null> {
-  const rows = await valuesGet(`${GUESTS_TAB}!A2:T`);
+  const rows = await valuesGet(`${GUESTS_TAB}!A2:V`);
   for (let i = 0; i < rows.length; i++) {
     if ((rows[i][0] || "").trim() === passportId.trim()) {
       // +2 because: arrays are 0-based AND we skipped the header row.
@@ -326,18 +370,31 @@ export async function generateNextPassportId(): Promise<string> {
   return `${PASSPORT_PREFIX}-${PASSPORT_YEAR}-${padded}-${randomToken()}`;
 }
 
+async function getNextGuestRowNumber(): Promise<number> {
+  const rows = await valuesGet(`${GUESTS_TAB}!A2:A`);
+  const firstEmptyIndex = rows.findIndex((row) => !(row[0] || "").trim());
+  return firstEmptyIndex === -1 ? rows.length + 2 : firstEmptyIndex + 2;
+}
+
 /**
  * Add a new guest to the Guests tab.
  * Returns the fully-built Guest object that was saved.
  */
 export async function appendGuest(
-  input: RegistrationInput
+  input: RegistrationInput,
+  courseSetting?: CourseSetting | null,
 ): Promise<Guest> {
   const passportId = await generateNextPassportId();
   const now = new Date().toISOString();
   const passportLink = `/passport/${passportId}`;
+  const scanLimitDays = courseSetting?.scanLimitDays ?? null;
+  const validUntil = courseSetting?.validUntil || "";
+  const settingActive = courseSetting?.active !== false;
+  const dateActive = !validUntil || validUntil >= now.slice(0, 10);
+  const accountActive = settingActive && dateActive;
+  const scanEnabled = accountActive && (scanLimitDays === null || scanLimitDays > 0);
 
-  // Build the row in the exact column order (A..P).
+  // Build the row in the exact column order (A..V).
   const row = [
     passportId, // A Passport ID
     input.fullName, // B Full Name
@@ -357,11 +414,14 @@ export async function appendGuest(
     now, // P Last Updated
     input.course || "", // Q Course
     input.purpose || "", // R Purpose
-    "", // S Scan Limit (blank = policy default)
-    "TRUE", // T Scan Enabled (admin can set FALSE in Google Sheets)
+    scanLimitDays === null ? "" : String(scanLimitDays), // S Scan Limit
+    scanEnabled ? "TRUE" : "FALSE", // T Scan Enabled
+    accountActive ? "TRUE" : "FALSE", // U Account Active
+    validUntil, // V Valid Until
   ];
 
-  await valuesAppend(`${GUESTS_TAB}!A:T`, [row]);
+  const rowNumber = await getNextGuestRowNumber();
+  await valuesUpdate(`${GUESTS_TAB}!A${rowNumber}:V${rowNumber}`, [row]);
 
   return {
     passportId,
@@ -372,7 +432,10 @@ export async function appendGuest(
     guestType: input.guestType,
     course: input.course || "",
     purpose: input.purpose || "",
-    scanEnabled: true,
+    scanLimitDays,
+    scanEnabled,
+    accountActive,
+    validUntil,
     passportLink,
     floors: new Array(TOTAL_FLOORS).fill(false),
     completedCount: 0,
@@ -380,6 +443,52 @@ export async function appendGuest(
     registeredAt: now,
     lastUpdated: now,
   };
+}
+
+function rowToCourseSetting(row: string[]): CourseSetting | null {
+  const course = String(row[0] || "").trim();
+  if (!course) return null;
+  const rawLimit = String(row[1] || "").trim();
+  const parsedLimit = rawLimit ? Number(rawLimit) : null;
+  return {
+    course,
+    scanLimitDays: parsedLimit !== null && Number.isFinite(parsedLimit) ? Math.max(0, parsedLimit) : null,
+    validUntil: String(row[2] || "").trim(),
+    active: String(row[3] || "TRUE").trim().toLowerCase() !== "false",
+  };
+}
+
+export async function getCourseSettings(): Promise<CourseSetting[]> {
+  try {
+    const rows = await valuesGet(`${ADMIN_SETTINGS_TAB}!A2:D`);
+    return rows.map((row) => rowToCourseSetting(row)).filter((setting): setting is CourseSetting => setting !== null);
+  } catch {
+    return [];
+  }
+}
+
+export async function getCourseSetting(course: string): Promise<CourseSetting | null> {
+  const normalizedCourse = course.trim().toLowerCase();
+  if (!normalizedCourse) return null;
+  const setting = (await getCourseSettings()).find(
+    (candidate) => candidate.course.toLowerCase() === normalizedCourse,
+  );
+  return setting || null;
+}
+
+export async function saveCourseSettings(settings: CourseSetting[]): Promise<void> {
+  await ensureAdminSettingsTab();
+  await valuesClear(`${ADMIN_SETTINGS_TAB}!A2:D100`);
+  if (settings.length === 0) return;
+  await valuesUpdate(
+    `${ADMIN_SETTINGS_TAB}!A2:D${settings.length + 1}`,
+    settings.map((setting) => [
+      setting.course.trim(),
+      setting.scanLimitDays === null ? "" : String(setting.scanLimitDays),
+      setting.validUntil,
+      setting.active ? "TRUE" : "FALSE",
+    ]),
+  );
 }
 
 /**

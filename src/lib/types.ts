@@ -17,7 +17,10 @@ export interface Guest {
   guestType: string; // e.g. Student, VIP, Staff, Visitor
   course: string;
   purpose: string;
+  scanLimitDays: number | null;
   scanEnabled: boolean;
+  accountActive: boolean;
+  validUntil: string;
   passportLink: string; // e.g. "/passport/HYT-2026-0001"
 
   // One boolean per floor (index 0 = Floor 1, ... index 4 = Floor 5).
@@ -39,6 +42,13 @@ export interface RegistrationInput {
   guestType: string;
   course?: string;
   purpose?: string;
+}
+
+export interface CourseSetting {
+  course: string;
+  scanLimitDays: number | null;
+  validUntil: string;
+  active: boolean;
 }
 
 // One row in the "Scan Logs" sheet tab.

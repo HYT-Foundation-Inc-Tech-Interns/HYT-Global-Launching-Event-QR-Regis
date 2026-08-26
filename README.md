@@ -39,6 +39,11 @@ The spreadsheet database integration belongs in `src/lib/sheets.ts`, marked
 with `SPREADSHEET DATABASE PLUGIN INTEGRATION POINT`. Do not place spreadsheet
 credentials in a client component or use `NEXT_PUBLIC_` for them.
 
+Course defaults are managed at `/admin/settings`. The first save creates an
+`Admin Settings` tab automatically with these columns: `Course`, `Scan Limit
+Days`, `Valid Until` (`YYYY-MM-DD`), and `Active`. These settings are copied to
+new guest rows only; existing guests keep their saved settings.
+
 ## 🔄 How guests collect stamps
 
 Guests scan the **floor's posted QR code themselves** — no staff needed:
