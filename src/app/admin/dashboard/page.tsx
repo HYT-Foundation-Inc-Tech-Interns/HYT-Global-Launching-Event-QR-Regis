@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { Search } from "lucide-react";
 import Header from "@/components/Header";
 import type { Guest } from "@/lib/types";
 import { getAccountStatus } from "@/lib/scanPolicy";
@@ -90,7 +91,7 @@ export default function AdminDashboard() {
       <Header subtitle="Admin dashboard" />
       <section className="mx-auto max-w-5xl px-4 py-8">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-slate-800">Admin Dashboard</h1>
+          <h1 className="text-2xl font-bold text-white">Admin Dashboard</h1>
           <button
             onClick={load}
             className="rounded-lg bg-[#0C005B] px-4 py-2 text-sm font-medium text-white hover:bg-[#080046]"
@@ -117,31 +118,38 @@ export default function AdminDashboard() {
             value={data?.summary.completedAll ?? "—"}
             color="text-brand-purple"
           />
-          <StatCard
-            label="Rewards Claimed"
-            value={data?.summary.rewardsClaimed ?? "—"}
-            color="text-brand-gold"
-          />
         </div>
 
         {/* Search */}
         <div className="mt-6">
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by name or Passport ID..."
-            className="w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-brand-blue focus:outline-none focus:ring-2 focus:ring-brand-blue/30"
-          />
-          <select
-            value={accountFilter}
-            onChange={(e) => setAccountFilter(e.target.value as typeof accountFilter)}
-            className="mt-3 w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-brand-blue focus:outline-none focus:ring-2 focus:ring-brand-blue/30"
-          >
-            <option value="all">All account statuses</option>
-            <option value="active">Active accounts</option>
-            <option value="inactive">Inactive accounts</option>
-            <option value="expired">Expired accounts</option>
-          </select>
+          <div className="relative">
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search by name or Passport ID..."
+              className="w-full rounded-xl border border-slate-300 px-4 py-3 pr-11 focus:border-brand-blue focus:outline-none focus:ring-2 focus:ring-brand-blue/30"
+            />
+            <Search
+              aria-hidden="true"
+              className="pointer-events-none absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400"
+            />
+          </div>
+          <div className="mt-3 flex w-full overflow-hidden rounded-xl border border-slate-300 bg-white focus-within:border-brand-blue focus-within:ring-2 focus-within:ring-brand-blue/30">
+            <span className="flex shrink-0 items-center border-r border-slate-300 px-4 py-3 text-sm font-medium text-slate-700">
+              Filter
+            </span>
+            <select
+              value={accountFilter}
+              onChange={(e) => setAccountFilter(e.target.value as typeof accountFilter)}
+              aria-label="Filter account status"
+              className="min-w-0 flex-1 border-0 px-4 py-3 text-sm text-slate-700 focus:outline-none focus:ring-0"
+            >
+              <option value="all">All account statuses</option>
+              <option value="active">Active accounts</option>
+              <option value="inactive">Inactive accounts</option>
+              <option value="expired">Expired accounts</option>
+            </select>
+          </div>
         </div>
 
         {error && (
