@@ -491,6 +491,42 @@ export async function saveCourseSettings(settings: CourseSetting[]): Promise<voi
   );
 }
 
+export async function decrementGuestScanLimit(
+  passportId: string,
+): Promise<
+  | { ok: true; guest: Guest; remaining: number }
+  | { ok: false; reason: "not_found" | "inactive" | "expired" | "unlimited" | "exhausted" }
+> {
+  const found = await findGuestRow(passportId);
+  if (!found) return { ok: false, reason: "not_found" };
+
+  const { guest, rowNumber } = found;
+  const today = new Date().toISOString().slice(0, 10);
+  if (!guest.accountActive) return { ok: false, reason: "inactive" };
+  if (guest.validUntil && guest.validUntil < today) return { ok: false, reason: "expired" };
+  if (guest.scanLimitDays === null) return { ok: false, reason: "unlimited" };
+  if (guest.scanLimitDays <= 0) return { ok: false, reason: "exhausted" };
+
+  const remaining = guest.scanLimitDays - 1;
+  const now = new Date().toISOString();
+  await valuesUpdate(`${GUESTS_TAB}!S${rowNumber}:T${rowNumber}`, [[
+    String(remaining),
+    remaining > 0 ? "TRUE" : "FALSE",
+  ]]);
+  await valuesUpdate(`${GUESTS_TAB}!P${rowNumber}`, [[now]]);
+
+  return {
+    ok: true,
+    remaining,
+    guest: {
+      ...guest,
+      scanLimitDays: remaining,
+      scanEnabled: remaining > 0,
+      lastUpdated: now,
+    },
+  };
+}
+
 /**
  * Mark a floor as completed for a guest and recompute the completed count
  * and status. Returns an object describing what happened.
