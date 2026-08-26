@@ -11,7 +11,7 @@
  *   C1 = created date
  */
 
-import { getAdminLoginCredentials } from "./sheets";
+import { getAdminLoginCredentials } from "./admin-db";
 
 export const ADMIN_SESSION_COOKIE = "hyt_admin_session";
 const SESSION_LIFETIME_SECONDS = 8 * 60 * 60;
@@ -81,19 +81,8 @@ export async function isValidAdminSession(session: string | undefined): Promise<
   return Boolean(suppliedBytes && expectedBytes && equalBytes(suppliedBytes, expectedBytes));
 }
 
-/** Checks the configured password on the server. */
-export function isCorrectAdminPassword(password: string): boolean {
-  const configuredPassword = process.env.ADMIN_PASSWORD;
-  if (!configuredPassword) return false;
-  const supplied = new TextEncoder().encode(password);
-  const expected = new TextEncoder().encode(configuredPassword);
-  return equalBytes(supplied, expected);
-}
-
 /**
- * Validate admin credentials by reading the Google Sheet values.
- * The app is intentionally configured to ignore env-based admin credentials
- * so the login always matches the sheet entry.
+ * Validate admin credentials by reading the D1 admins table.
  */
 export async function isCorrectAdminCredentials(
   username: string,
@@ -103,11 +92,28 @@ export async function isCorrectAdminCredentials(
   const trimmedPassword = password.trim();
   if (!trimmedUsername || !trimmedPassword) return false;
 
-  const sheetCredentials = await getAdminLoginCredentials(
-    trimmedUsername,
-    trimmedPassword
+  const databaseCredentials = await getAdminLoginCredentials(trimmedUsername);
+  if (!databaseCredentials) return false;
+
+  const salt = fromBase64Url(databaseCredentials.passwordSalt);
+  const expectedHash = fromBase64Url(databaseCredentials.passwordHash);
+  if (!salt || !expectedHash) return false;
+
+  const key = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(trimmedPassword),
+    "PBKDF2",
+    false,
+    ["deriveBits"]
   );
-  return Boolean(sheetCredentials);
+  const derivedHash = new Uint8Array(
+    await crypto.subtle.deriveBits(
+      { name: "PBKDF2", salt: salt as BufferSource, iterations: 100_000, hash: "SHA-256" },
+      key,
+      expectedHash.length * 8
+    )
+  );
+  return equalBytes(derivedHash, expectedHash);
 }
 
 export const adminSessionMaxAge = SESSION_LIFETIME_SECONDS;

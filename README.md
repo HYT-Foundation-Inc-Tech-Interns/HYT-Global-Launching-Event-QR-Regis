@@ -24,13 +24,16 @@ they become eligible for a certificate of participation or souvenir.
 The **frontend never touches Google Sheets directly.** All reads/writes go
 through backend API routes under `/api/*`, which use a Google service account.
 
-Admin pages require a shared password. Add these server-only variables to
-`.env.local` and your deployment provider's environment settings:
+Admin credentials are stored in the Cloudflare D1 `admins` table. Apply the
+migration, then optionally create or reset an admin with:
 
-```env
-ADMIN_PASSWORD=choose-a-long-unique-password
-ADMIN_SESSION_SECRET=use-a-different-long-random-secret
+```powershell
+npx wrangler d1 migrations apply hytglobal_db --remote
+npm run create-admin -- --username admin --password "choose-a-long-unique-password"
 ```
+
+Set `ADMIN_SESSION_SECRET` as a server-only deployment secret. The password is
+stored as a PBKDF2 hash and never in plaintext.
 
 The spreadsheet database integration belongs in `src/lib/sheets.ts`, marked
 with `SPREADSHEET DATABASE PLUGIN INTEGRATION POINT`. Do not place spreadsheet
