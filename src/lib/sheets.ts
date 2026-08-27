@@ -34,7 +34,7 @@
 
 import type { CourseSetting, Guest, GuestStatus, RegistrationInput, ScanLog } from "./types";
 import { TOTAL_FLOORS } from "./stations";
-import { hasDailyAttendanceQuota } from "./scanPolicy";
+import { hasDailyAttendanceQuota, hasOneDayValidity } from "./scanPolicy";
 
 // SPREADSHEET DATABASE PLUGIN INTEGRATION POINT:
 // Put any Google Sheets, Airtable, or other spreadsheet-database plugin/client
@@ -400,7 +400,7 @@ export async function appendGuest(
   const passportLink = `/passport/${passportId}`;
   const dailyQuota = hasDailyAttendanceQuota(input.guestType);
   const scanLimitDays = dailyQuota ? 2 : courseSetting?.scanLimitDays ?? null;
-  const validUntil = dailyQuota ? "" : courseSetting?.validUntil || "";
+  const validUntil = hasOneDayValidity(input.guestType) ? now.slice(0, 10) : courseSetting?.validUntil || "";
   const settingActive = courseSetting?.active !== false;
   const dateActive = !validUntil || validUntil >= now.slice(0, 10);
   const accountActive = settingActive && dateActive;
@@ -516,7 +516,7 @@ export async function decrementGuestScanLimit(
   const today = new Date().toISOString().slice(0, 10);
   if (!guest.accountActive) return { ok: false, reason: "inactive" };
   if (guest.validUntil && guest.validUntil < today) return { ok: false, reason: "expired" };
-  if (["worker", "visitor", "vip", "employee"].includes(guest.guestType.trim().toLowerCase())) {
+  if (hasDailyAttendanceQuota(guest.guestType)) {
     const scansToday = await getGuestScanCountToday(passportId);
     const dailyLimit = 2;
     if (scansToday >= dailyLimit) return { ok: false, reason: "exhausted" };

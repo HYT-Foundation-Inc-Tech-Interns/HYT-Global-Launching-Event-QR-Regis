@@ -7,13 +7,18 @@ export interface ScanPolicy {
 }
 
 export function hasDailyAttendanceQuota(guestType: string): boolean {
-  return ["worker", "visitor", "vip", "employee"].includes(guestType.trim().toLowerCase());
+  return ["visitor", "vip", "employee"].includes(guestType.trim().toLowerCase());
+}
+
+export function hasOneDayValidity(guestType: string): boolean {
+  return ["visitor", "vip"].includes(guestType.trim().toLowerCase());
 }
 
 export function getValidityLabel(
   guest: Pick<Guest, "guestType" | "course" | "scanLimitDays" | "scanEnabled" | "accountActive" | "validUntil">,
 ): string {
   if (guest.accountActive === false) return "Account inactive";
+  if (hasOneDayValidity(guest.guestType)) return "Valid for 1 day";
   if (guest.validUntil) return `Valid until ${guest.validUntil}`;
   if (hasDailyAttendanceQuota(guest.guestType)) return "2 attendance scans per day";
   const policy = getScanPolicy(guest);
