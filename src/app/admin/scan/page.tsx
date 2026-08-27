@@ -99,6 +99,15 @@ export default function AdminScanPage() {
               </ScannerBoundary>
             </div>
           )}
+          {nfcReading && (
+            <div className="mt-5 rounded-xl bg-slate-50 p-6 ring-1 ring-slate-200">
+              <p className="text-sm font-semibold text-slate-700">NFC mode</p>
+              <p className="mt-2 text-xs text-slate-500">
+                Keep this page open while you hold the written tag near the back of the phone.
+                If NFC mode is not active, the URL will open the passport web page normally.
+              </p>
+            </div>
+          )}
 
           <button
             type="button"
@@ -108,6 +117,20 @@ export default function AdminScanPage() {
           >
             {nfcReading ? "Hold NFC tag near device..." : "Scan NFC tag"}
           </button>
+          {nfcReading && !working && (
+            <button
+              type="button"
+              onClick={() => {
+                setNfcReading(false);
+                setNfcStatus("");
+                setError("");
+                setScanKey((key) => key + 1);
+              }}
+              className="mt-2 w-full rounded-xl px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50"
+            >
+              Cancel NFC and use QR
+            </button>
+          )}
           {nfcStatus && <p className="mt-2 text-xs text-slate-500">{nfcStatus}</p>}
 
           {working && <p className="mt-4 text-sm font-medium text-slate-600">Processing scan...</p>}
