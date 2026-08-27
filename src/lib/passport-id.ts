@@ -1,4 +1,4 @@
-const PASSPORT_ID_PATTERN = /\bHYT-[A-Z0-9-]+\b/i;
+const PASSPORT_ID_PATTERN = /\bHYT-\d{4}-\d{4}-[a-f0-9]{8}\b/i;
 
 export function extractPassportId(value: string): string {
   const match = value.trim().match(PASSPORT_ID_PATTERN);

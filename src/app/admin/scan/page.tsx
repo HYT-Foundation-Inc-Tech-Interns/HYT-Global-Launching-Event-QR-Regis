@@ -61,7 +61,7 @@ export default function AdminScanPage() {
         if (handled) return;
         const records = event.message?.records || [];
         const passportId = records.map(extractPassportIdFromNfcRecord).find(Boolean) || "";
-        if (!/^HYT-[A-Z0-9-]+$/i.test(passportId)) {
+        if (!passportId) {
           setError("This NFC tag has no valid passport URL. Try the HYT passport tag.");
           return;
         }
