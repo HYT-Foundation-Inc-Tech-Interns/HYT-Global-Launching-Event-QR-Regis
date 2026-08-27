@@ -22,7 +22,12 @@ export default function AdminScanPage() {
   function getPassportIdFromNfcRecord(record: {
     data: DataView | ArrayBuffer | null;
     toText?: () => string | null;
+    toUrl?: () => string | null;
   }): string {
+    if (record.toUrl) {
+      const url = record.toUrl();
+      if (url) return getPassportId(url);
+    }
     if (record.toText) {
       const text = record.toText();
       if (text) return getPassportId(text);
@@ -74,7 +79,7 @@ export default function AdminScanPage() {
     setNfcReading(true);
     setError("");
     try {
-      const Reader = (window as Window & { NDEFReader: new () => { scan: () => Promise<void>; addEventListener: (event: "reading" | "readingerror", handler: (event: { message?: { records: { data: DataView | ArrayBuffer | null; toText?: () => string | null }[] } }) => void, options?: { once?: boolean }) => void } }).NDEFReader;
+      const Reader = (window as Window & { NDEFReader: new () => { scan: () => Promise<void>; addEventListener: (event: "reading" | "readingerror", handler: (event: { message?: { records: { data: DataView | ArrayBuffer | null; toText?: () => string | null; toUrl?: () => string | null }[] } }) => void, options?: { once?: boolean }) => void } }).NDEFReader;
       const reader = new Reader();
       reader.addEventListener("reading", (event) => {
         const records = event.message?.records || [];

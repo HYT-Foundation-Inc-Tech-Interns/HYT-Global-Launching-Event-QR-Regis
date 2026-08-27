@@ -95,6 +95,7 @@ export default function AdminSettingsPage() {
           <button onClick={save} disabled={loading || saving} className="rounded-lg bg-[#0C005B] px-4 py-2 text-sm font-semibold text-white disabled:opacity-60">{saving ? "Saving..." : "Save settings"}</button>
         </div>
 
+        <p className="mt-5 text-xs text-slate-500">Create a Google Sheets tab named <strong>Admin Settings</strong> with columns A: Course, B: Scan Limit Days, C: Valid Until, D: Active.</p>
       </section>
     </main>
   );
