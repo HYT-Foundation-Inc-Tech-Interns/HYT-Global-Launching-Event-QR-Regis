@@ -1,5 +1,6 @@
 "use client";
 
+import { flushSync } from "react-dom";
 import { useState } from "react";
 import Header from "@/components/Header";
 import QrScanner from "@/components/QrScanner";
@@ -50,35 +51,38 @@ export default function AdminScanPage() {
       return;
     }
 
-    setNfcReading(true);
+    flushSync(() => setNfcReading(true));
     setError("");
     setNfcStatus("Starting NFC reader...");
-    try {
-      const Reader = (window as Window & { NDEFReader: new () => { scan: () => Promise<void>; addEventListener: (event: "reading" | "readingerror", handler: (event: { message?: { records: { data: DataView | ArrayBuffer | null; toText?: () => string | null; toUrl?: () => string | null }[] } }) => void, options?: { once?: boolean }) => void } }).NDEFReader;
-      const reader = new Reader();
-      let handled = false;
-      reader.addEventListener("reading", (event) => {
-        if (handled) return;
-        const records = event.message?.records || [];
-        const passportId = records.map(extractPassportIdFromNfcRecord).find(Boolean) || "";
-        if (!passportId) {
-          setError("This NFC tag has no valid passport URL. Try the HYT passport tag.");
-          return;
-        }
-        handled = true;
-        setNfcStatus(`Passport found: ${passportId}`);
-        void scanGuest(passportId, "nfc");
+    const Reader = (window as Window & { NDEFReader: new () => { scan: () => Promise<void>; addEventListener: (event: "reading" | "readingerror", handler: (event: { message?: { records: { data: DataView | ArrayBuffer | null; toText?: () => string | null; toUrl?: () => string | null }[] } }) => void) => void } }).NDEFReader;
+    const reader = new Reader();
+    let handled = false;
+
+    reader.addEventListener("reading", (event) => {
+      if (handled) return;
+      const records = event.message?.records || [];
+      const passportId = records.map(extractPassportIdFromNfcRecord).find(Boolean) || "";
+      if (!passportId) {
+        setError("This NFC tag has no valid passport URL. Try the HYT passport tag.");
+        return;
+      }
+      handled = true;
+      setNfcStatus(`Passport found: ${passportId}`);
+      void scanGuest(passportId, "nfc");
+    });
+    reader.addEventListener("readingerror", () => {
+      setError("The NFC tag could not be read. Hold it still near the phone.");
+    });
+
+    reader.scan()
+      .then(() => {
+        setNfcStatus("NFC reader active. Hold the passport tag near the back of the phone.");
+      })
+      .catch((error: unknown) => {
+        setError(error instanceof Error ? error.message : "Could not read the NFC tag.");
+        setNfcReading(false);
+        setNfcStatus("");
       });
-      reader.addEventListener("readingerror", () => {
-        setError("The NFC tag could not be read. Hold it still near the phone.");
-      });
-      await reader.scan();
-      setNfcStatus("NFC reader active. Hold the passport tag near the back of the phone.");
-    } catch (error) {
-      setError(error instanceof Error ? error.message : "Could not read the NFC tag.");
-      setNfcReading(false);
-      setNfcStatus("");
-    }
   }
 
   return (
@@ -88,11 +92,13 @@ export default function AdminScanPage() {
         <div className="rounded-2xl bg-white p-5 text-center shadow-sm ring-1 ring-slate-200">
           <h1 className="text-2xl font-bold text-slate-800">Scan guest QR or NFC</h1>
           <p className="mt-2 text-sm text-slate-500">Each successful scan reduces the guest&apos;s remaining limit by one.</p>
-          <div className="mt-5 overflow-hidden rounded-xl bg-black">
-            <ScannerBoundary>
-              <QrScanner key={scanKey} onScan={scanGuest} onError={setError} />
-            </ScannerBoundary>
-          </div>
+          {!nfcReading && (
+            <div className="mt-5 overflow-hidden rounded-xl bg-black">
+              <ScannerBoundary>
+                <QrScanner key={scanKey} onScan={scanGuest} onError={setError} />
+              </ScannerBoundary>
+            </div>
+          )}
 
           <button
             type="button"
