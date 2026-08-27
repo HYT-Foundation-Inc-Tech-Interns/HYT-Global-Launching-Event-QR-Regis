@@ -7,6 +7,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const passportId = String(body?.passportId || "").trim();
+    const nfcId = String(body?.nfcId || "").trim();
     if (!passportId) {
       return NextResponse.json({ error: "passportId is required." }, { status: 400 });
     }
@@ -27,9 +28,10 @@ export async function POST(request: NextRequest) {
     await appendScanLog({
       timestamp: new Date().toISOString(),
       passportId,
+      nfcId: nfcId || undefined,
       guestName: result.guest.fullName,
-      station: "Admin QR Scanner",
-      action: "Admin Scan",
+      station: nfcId ? "Admin NFC Scanner" : "Admin QR Scanner",
+      action: nfcId ? "NFC Scan" : "Admin Scan",
       scannerPage: "/admin/scan",
     });
 

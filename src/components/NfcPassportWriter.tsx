@@ -1,25 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Radio } from "lucide-react";
 
 export default function NfcPassportWriter({ passportId }: { passportId: string }) {
   const [status, setStatus] = useState("");
   const [writing, setWriting] = useState(false);
-  const [origin, setOrigin] = useState("");
-  const nfcUrl = origin
-    ? `${origin}/passport/${encodeURIComponent(passportId)}`
-    : "";
-
-  useEffect(() => {
-    setOrigin(window.location.origin);
-  }, []);
-
   async function writeNfc() {
-    if (!nfcUrl) {
-      setStatus("Preparing the passport URL. Please try again.");
-      return;
-    }
     if (!("NDEFReader" in window)) {
       setStatus("NFC writing is supported on compatible Android browsers only.");
       return;
@@ -30,7 +17,7 @@ export default function NfcPassportWriter({ passportId }: { passportId: string }
     try {
       const Reader = (window as Window & { NDEFReader: new () => { write: (message: { records: { recordType: string; data: string }[] }) => Promise<void> } }).NDEFReader;
       const reader = new Reader();
-      await reader.write({ records: [{ recordType: "url", data: nfcUrl }] });
+      await reader.write({ records: [{ recordType: "text", data: passportId }] });
       setStatus("NFC tag written successfully.");
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "Could not write the NFC tag.");
@@ -45,7 +32,7 @@ export default function NfcPassportWriter({ passportId }: { passportId: string }
         <Radio className="h-5 w-5 text-brand-purple" aria-hidden="true" />
         <h2 className="font-semibold text-slate-800">NFC passport</h2>
       </div>
-      <p className="mt-1 text-xs text-slate-500">Write the guest passport URL to an NFC tag. Admin scanning supports this NFC tag and the matching QR code.</p>
+      <p className="mt-1 text-xs text-slate-500">This writes only the passport ID. The admin scanner checks it in the Guests sheet.</p>
       <button
         type="button"
         onClick={writeNfc}

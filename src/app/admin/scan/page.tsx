@@ -15,21 +15,32 @@ export default function AdminScanPage() {
   const [nfcReading, setNfcReading] = useState(false);
 
   function getPassportId(value: string): string {
-    const normalized = value.trim();
-    const match = normalized.match(/\/passport\/([^/?#]+)/);
-    return match ? decodeURIComponent(match[1]) : normalized;
+    const match = value.trim().match(/\bHYT-[A-Z0-9-]+\b/i);
+    return match ? match[0] : "";
   }
 
-  function decodeNfcRecord(record: { recordType: string; data: DataView }): string {
-    const bytes = new Uint8Array(record.data.buffer, record.data.byteOffset, record.data.byteLength);
-    if (record.recordType === "url" && bytes.length > 0) {
-      const prefixes = ["", "http://www.", "https://www.", "http://", "https://"];
-      return `${prefixes[bytes[0]] || ""}${new TextDecoder().decode(bytes.slice(1))}`;
+  function getPassportIdFromNfcRecord(record: {
+    data: DataView | ArrayBuffer | null;
+    toText?: () => string | null;
+  }): string {
+    if (record.toText) {
+      const text = record.toText();
+      if (text) return getPassportId(text);
     }
-    return new TextDecoder().decode(bytes);
+    if (!record.data) return "";
+    const data = record.data instanceof DataView
+      ? new Uint8Array(record.data.buffer, record.data.byteOffset, record.data.byteLength)
+      : new Uint8Array(record.data);
+    const decoder = new TextDecoder();
+    const candidates = [decoder.decode(data)];
+    if (data.length > 1) {
+      const languageLength = data[0] & 0x3f;
+      candidates.push(decoder.decode(data.slice(languageLength + 1)));
+    }
+    return candidates.map(getPassportId).find(Boolean) || "";
   }
 
-  async function scanGuest(value: string) {
+  async function scanGuest(value: string, source: "qr" | "nfc" = "qr") {
     const passportId = getPassportId(value);
     setWorking(true);
     setError("");
@@ -39,7 +50,7 @@ export default function AdminScanPage() {
       const response = await fetch("/api/admin/scan", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ passportId }),
+        body: JSON.stringify({ passportId, nfcId: source === "nfc" ? passportId : undefined }),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Could not process scan.");
@@ -63,15 +74,21 @@ export default function AdminScanPage() {
     setNfcReading(true);
     setError("");
     try {
-      const Reader = (window as Window & { NDEFReader: new () => { scan: () => Promise<void>; addEventListener: (event: "reading", handler: (event: { message: { records: { recordType: string; data: DataView }[] } }) => void, options?: { once?: boolean }) => void } }).NDEFReader;
+      const Reader = (window as Window & { NDEFReader: new () => { scan: () => Promise<void>; addEventListener: (event: "reading" | "readingerror", handler: (event: { message?: { records: { data: DataView | ArrayBuffer | null; toText?: () => string | null }[] } }) => void, options?: { once?: boolean }) => void } }).NDEFReader;
       const reader = new Reader();
       reader.addEventListener("reading", (event) => {
-        const record = event.message.records[0];
-        if (!record) throw new Error("The NFC tag has no passport URL.");
-        const value = decodeNfcRecord(record);
-        const match = value.match(/\/passport\/([^/?#]+)/);
-        if (!match) throw new Error("The NFC tag does not contain a guest passport URL.");
-        void scanGuest(value);
+        const records = event.message?.records || [];
+        const passportId = records.map(getPassportIdFromNfcRecord).find(Boolean) || "";
+        if (!/^HYT-[A-Z0-9-]+$/i.test(passportId)) {
+          setError("The NFC tag has no valid passport ID.");
+          setNfcReading(false);
+          return;
+        }
+        void scanGuest(passportId, "nfc");
+      }, { once: true });
+      reader.addEventListener("readingerror", () => {
+        setError("The NFC tag could not be read. Hold it still near the phone.");
+        setNfcReading(false);
       }, { once: true });
       await reader.scan();
     } catch (error) {
