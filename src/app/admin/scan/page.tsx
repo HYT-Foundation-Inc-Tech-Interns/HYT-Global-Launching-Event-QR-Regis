@@ -136,7 +136,7 @@ export default function AdminScanPage() {
               <p className="font-mono text-xs text-slate-500">{guest.passportId}</p>
               {scannedAt && (
                 <div className="mt-3 border-t border-green-200 pt-3 text-sm text-green-800">
-                  <p className="font-semibold">Scanned today</p>
+                  <p className="font-semibold">DATE AND TIME</p>
                   <p>{new Date(scannedAt).toLocaleDateString()} at {new Date(scannedAt).toLocaleTimeString()}</p>
                 </div>
               )}
