@@ -9,6 +9,7 @@ import { TOTAL_FLOORS } from "@/lib/stations";
 import { getValidityLabel } from "@/lib/scanPolicy";
 import ProgressBar from "./ProgressBar";
 import FloorList from "./FloorList";
+import NfcPassportWriter from "./NfcPassportWriter";
 
 /**
  * The main passport "card". Shows guest info, a QR code, the progress bar,
@@ -120,6 +121,7 @@ export default function PassportCard({
         <Download className="mr-2 inline h-4 w-4" aria-hidden="true" />
         Download / Save Passport as Image
       </button>
+      <NfcPassportWriter passportId={guest.passportId} />
     </div>
   );
 }
