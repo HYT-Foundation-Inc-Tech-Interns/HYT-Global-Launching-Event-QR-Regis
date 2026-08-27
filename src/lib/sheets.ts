@@ -34,6 +34,7 @@
 
 import type { CourseSetting, Guest, GuestStatus, RegistrationInput, ScanLog } from "./types";
 import { TOTAL_FLOORS } from "./stations";
+import { hasDailyAttendanceQuota } from "./scanPolicy";
 
 // SPREADSHEET DATABASE PLUGIN INTEGRATION POINT:
 // Put any Google Sheets, Airtable, or other spreadsheet-database plugin/client
@@ -341,6 +342,16 @@ export async function getGuestScanDays(passportId: string): Promise<string[]> {
   );
 }
 
+export async function getGuestScanCountToday(passportId: string): Promise<number> {
+  const today = new Date().toISOString().slice(0, 10);
+  const rows = await valuesGet(`${SCAN_LOGS_TAB}!A2:F`);
+  return rows.filter(
+    (row) => row[1] === passportId &&
+      (row[4] === "Admin Scan" || row[4] === "NFC Scan") &&
+      (row[0] || "").slice(0, 10) === today,
+  ).length;
+}
+
 /**
  * Generate the next sequential Passport ID, e.g. "HYT-2026-0001".
  * We count the existing rows and add 1. The year prefix can be changed
@@ -387,8 +398,9 @@ export async function appendGuest(
   const passportId = await generateNextPassportId();
   const now = new Date().toISOString();
   const passportLink = `/passport/${passportId}`;
-  const scanLimitDays = courseSetting?.scanLimitDays ?? null;
-  const validUntil = courseSetting?.validUntil || "";
+  const dailyQuota = hasDailyAttendanceQuota(input.guestType);
+  const scanLimitDays = dailyQuota ? 2 : courseSetting?.scanLimitDays ?? null;
+  const validUntil = dailyQuota ? "" : courseSetting?.validUntil || "";
   const settingActive = courseSetting?.active !== false;
   const dateActive = !validUntil || validUntil >= now.slice(0, 10);
   const accountActive = settingActive && dateActive;
@@ -504,6 +516,12 @@ export async function decrementGuestScanLimit(
   const today = new Date().toISOString().slice(0, 10);
   if (!guest.accountActive) return { ok: false, reason: "inactive" };
   if (guest.validUntil && guest.validUntil < today) return { ok: false, reason: "expired" };
+  if (["worker", "visitor", "vip", "employee"].includes(guest.guestType.trim().toLowerCase())) {
+    const scansToday = await getGuestScanCountToday(passportId);
+    const dailyLimit = 2;
+    if (scansToday >= dailyLimit) return { ok: false, reason: "exhausted" };
+    return { ok: true, remaining: dailyLimit - scansToday - 1, guest };
+  }
   if (guest.scanLimitDays === null) return { ok: false, reason: "unlimited" };
   if (guest.scanLimitDays <= 0) return { ok: false, reason: "exhausted" };
 

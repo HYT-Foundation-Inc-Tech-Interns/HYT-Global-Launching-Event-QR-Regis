@@ -10,6 +10,7 @@ export default function AdminScanPage() {
   const [scanKey, setScanKey] = useState(0);
   const [guest, setGuest] = useState<Guest | null>(null);
   const [remaining, setRemaining] = useState<number | null>(null);
+  const [scannedAt, setScannedAt] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [working, setWorking] = useState(false);
   const [nfcReading, setNfcReading] = useState(false);
@@ -51,6 +52,7 @@ export default function AdminScanPage() {
     setError("");
     setGuest(null);
     setRemaining(null);
+    setScannedAt(null);
     try {
       const response = await fetch("/api/admin/scan", {
         method: "POST",
@@ -61,6 +63,7 @@ export default function AdminScanPage() {
       if (!response.ok) throw new Error(data.error || "Could not process scan.");
       setGuest(data.guest);
       setRemaining(data.remaining);
+      setScannedAt(data.scannedAt);
     } catch (scanError) {
       setError(scanError instanceof Error ? scanError.message : "Could not process scan.");
     } finally {
@@ -128,9 +131,15 @@ export default function AdminScanPage() {
           {error && <div className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-700 ring-1 ring-red-200">{error}</div>}
           {guest && (
             <div className="mt-5 rounded-xl bg-green-50 p-4 text-left ring-1 ring-green-200">
-              <p className="font-semibold text-green-800">Scan accepted</p>
+              <p className="text-lg font-bold text-green-800">Scan accepted</p>
               <p className="mt-1 text-sm text-slate-700">{guest.fullName}</p>
               <p className="font-mono text-xs text-slate-500">{guest.passportId}</p>
+              {scannedAt && (
+                <div className="mt-3 border-t border-green-200 pt-3 text-sm text-green-800">
+                  <p className="font-semibold">Scanned today</p>
+                  <p>{new Date(scannedAt).toLocaleDateString()} at {new Date(scannedAt).toLocaleTimeString()}</p>
+                </div>
+              )}
               <p className="mt-3 text-sm font-bold text-green-800">Scans remaining: {remaining}</p>
             </div>
           )}

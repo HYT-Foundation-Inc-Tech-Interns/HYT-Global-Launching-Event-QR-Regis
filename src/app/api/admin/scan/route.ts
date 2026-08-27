@@ -25,8 +25,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: messages[result.reason] }, { status });
     }
 
+    const scannedAt = new Date().toISOString();
     await appendScanLog({
-      timestamp: new Date().toISOString(),
+      timestamp: scannedAt,
       passportId,
       nfcId: nfcId || undefined,
       guestName: result.guest.fullName,
@@ -35,7 +36,11 @@ export async function POST(request: NextRequest) {
       scannerPage: "/admin/scan",
     });
 
-    return NextResponse.json({ guest: result.guest, remaining: result.remaining });
+    return NextResponse.json({
+      guest: { ...result.guest, scanLimitDays: result.remaining, scanEnabled: result.remaining > 0 },
+      remaining: result.remaining,
+      scannedAt,
+    });
   } catch (error) {
     console.error("POST /api/admin/scan failed:", error);
     return NextResponse.json({ error: "Could not process the admin scan." }, { status: 500 });
