@@ -6,6 +6,7 @@ import { Search } from "lucide-react";
 import Header from "@/components/Header";
 import type { Guest } from "@/lib/types";
 import { getAccountStatus } from "@/lib/scanPolicy";
+import NfcPassportWriter from "@/components/NfcPassportWriter";
 
 /**
  * Admin dashboard (/admin/dashboard).
@@ -217,6 +218,7 @@ export default function AdminDashboard() {
                     {g.validUntil && <span className="block text-slate-400">Until {g.validUntil}</span>}
                   </td>
                   <td className="px-4 py-3">
+                    <NfcPassportWriter passportId={g.passportId} />
                     {g.completedCount >= totalFloors &&
                     g.status !== "Reward Claimed" ? (
                       <button

@@ -20,6 +20,15 @@ export default function AdminScanPage() {
     return match ? decodeURIComponent(match[1]) : normalized;
   }
 
+  function decodeNfcRecord(record: { recordType: string; data: DataView }): string {
+    const bytes = new Uint8Array(record.data.buffer, record.data.byteOffset, record.data.byteLength);
+    if (record.recordType === "url" && bytes.length > 0) {
+      const prefixes = ["", "http://www.", "https://www.", "http://", "https://"];
+      return `${prefixes[bytes[0]] || ""}${new TextDecoder().decode(bytes.slice(1))}`;
+    }
+    return new TextDecoder().decode(bytes);
+  }
+
   async function scanGuest(value: string) {
     const passportId = getPassportId(value);
     setWorking(true);
@@ -54,12 +63,12 @@ export default function AdminScanPage() {
     setNfcReading(true);
     setError("");
     try {
-      const Reader = (window as Window & { NDEFReader: new () => { scan: () => Promise<void>; addEventListener: (event: "reading", handler: (event: { message: { records: { recordType: string; data: ArrayBuffer }[] } }) => void, options?: { once?: boolean }) => void } }).NDEFReader;
+      const Reader = (window as Window & { NDEFReader: new () => { scan: () => Promise<void>; addEventListener: (event: "reading", handler: (event: { message: { records: { recordType: string; data: DataView }[] } }) => void, options?: { once?: boolean }) => void } }).NDEFReader;
       const reader = new Reader();
       reader.addEventListener("reading", (event) => {
         const record = event.message.records[0];
         if (!record) throw new Error("The NFC tag has no passport URL.");
-        const value = new TextDecoder().decode(record.data);
+        const value = decodeNfcRecord(record);
         const match = value.match(/\/passport\/([^/?#]+)/);
         if (!match) throw new Error("The NFC tag does not contain a guest passport URL.");
         void scanGuest(value);
