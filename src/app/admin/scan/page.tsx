@@ -5,6 +5,7 @@ import Header from "@/components/Header";
 import QrScanner from "@/components/QrScanner";
 import ScannerBoundary from "@/components/ScannerBoundary";
 import type { Guest } from "@/lib/types";
+import { extractPassportId, extractPassportIdFromNfcRecord } from "@/lib/passport-id";
 
 export default function AdminScanPage() {
   const [scanKey, setScanKey] = useState(0);
@@ -15,39 +16,8 @@ export default function AdminScanPage() {
   const [working, setWorking] = useState(false);
   const [nfcReading, setNfcReading] = useState(false);
 
-  function getPassportId(value: string): string {
-    const match = value.trim().match(/\bHYT-[A-Z0-9-]+\b/i);
-    return match ? match[0] : "";
-  }
-
-  function getPassportIdFromNfcRecord(record: {
-    data: DataView | ArrayBuffer | null;
-    toText?: () => string | null;
-    toUrl?: () => string | null;
-  }): string {
-    if (record.toUrl) {
-      const url = record.toUrl();
-      if (url) return getPassportId(url);
-    }
-    if (record.toText) {
-      const text = record.toText();
-      if (text) return getPassportId(text);
-    }
-    if (!record.data) return "";
-    const data = record.data instanceof DataView
-      ? new Uint8Array(record.data.buffer, record.data.byteOffset, record.data.byteLength)
-      : new Uint8Array(record.data);
-    const decoder = new TextDecoder();
-    const candidates = [decoder.decode(data)];
-    if (data.length > 1) {
-      const languageLength = data[0] & 0x3f;
-      candidates.push(decoder.decode(data.slice(languageLength + 1)));
-    }
-    return candidates.map(getPassportId).find(Boolean) || "";
-  }
-
   async function scanGuest(value: string, source: "qr" | "nfc" = "qr") {
-    const passportId = getPassportId(value);
+    const passportId = extractPassportId(value);
     setWorking(true);
     setError("");
     setGuest(null);
@@ -86,7 +56,7 @@ export default function AdminScanPage() {
       const reader = new Reader();
       reader.addEventListener("reading", (event) => {
         const records = event.message?.records || [];
-        const passportId = records.map(getPassportIdFromNfcRecord).find(Boolean) || "";
+        const passportId = records.map(extractPassportIdFromNfcRecord).find(Boolean) || "";
         if (!/^HYT-[A-Z0-9-]+$/i.test(passportId)) {
           setError("The NFC tag has no valid passport ID.");
           setNfcReading(false);
