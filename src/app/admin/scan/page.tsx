@@ -15,6 +15,7 @@ export default function AdminScanPage() {
   const [error, setError] = useState("");
   const [working, setWorking] = useState(false);
   const [nfcReading, setNfcReading] = useState(false);
+  const [nfcStatus, setNfcStatus] = useState("");
 
   async function scanGuest(value: string, source: "qr" | "nfc" = "qr") {
     const passportId = extractPassportId(value);
@@ -51,27 +52,32 @@ export default function AdminScanPage() {
 
     setNfcReading(true);
     setError("");
+    setNfcStatus("Starting NFC reader...");
     try {
       const Reader = (window as Window & { NDEFReader: new () => { scan: () => Promise<void>; addEventListener: (event: "reading" | "readingerror", handler: (event: { message?: { records: { data: DataView | ArrayBuffer | null; toText?: () => string | null; toUrl?: () => string | null }[] } }) => void, options?: { once?: boolean }) => void } }).NDEFReader;
       const reader = new Reader();
+      let handled = false;
       reader.addEventListener("reading", (event) => {
+        if (handled) return;
         const records = event.message?.records || [];
         const passportId = records.map(extractPassportIdFromNfcRecord).find(Boolean) || "";
         if (!/^HYT-[A-Z0-9-]+$/i.test(passportId)) {
-          setError("The NFC tag has no valid passport ID.");
-          setNfcReading(false);
+          setError("This NFC tag has no valid passport URL. Try the HYT passport tag.");
           return;
         }
+        handled = true;
+        setNfcStatus(`Passport found: ${passportId}`);
         void scanGuest(passportId, "nfc");
-      }, { once: true });
+      });
       reader.addEventListener("readingerror", () => {
         setError("The NFC tag could not be read. Hold it still near the phone.");
-        setNfcReading(false);
-      }, { once: true });
+      });
       await reader.scan();
+      setNfcStatus("NFC reader active. Hold the passport tag near the back of the phone.");
     } catch (error) {
       setError(error instanceof Error ? error.message : "Could not read the NFC tag.");
       setNfcReading(false);
+      setNfcStatus("");
     }
   }
 
@@ -96,6 +102,7 @@ export default function AdminScanPage() {
           >
             {nfcReading ? "Hold NFC tag near device..." : "Scan NFC tag"}
           </button>
+          {nfcStatus && <p className="mt-2 text-xs text-slate-500">{nfcStatus}</p>}
 
           {working && <p className="mt-4 text-sm font-medium text-slate-600">Processing scan...</p>}
           {error && <div className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-700 ring-1 ring-red-200">{error}</div>}
