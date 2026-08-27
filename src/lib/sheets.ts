@@ -633,10 +633,10 @@ export async function claimReward(
 
 /**
  * Append a row to the Scan Logs tab. Used for an audit trail of every
- * scan/stamp action.
+ * scan/stamp action. Column G stores the NFC ID when the scan came from NFC.
  */
 export async function appendScanLog(log: ScanLog): Promise<void> {
-  await valuesAppend(`${SCAN_LOGS_TAB}!A:F`, [
+  await valuesAppend(`${SCAN_LOGS_TAB}!A:G`, [
     [
       log.timestamp,
       log.passportId,
@@ -644,6 +644,7 @@ export async function appendScanLog(log: ScanLog): Promise<void> {
       log.station,
       log.action,
       log.scannerPage,
+      log.nfcId || "",
     ],
   ]);
 }
