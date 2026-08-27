@@ -55,7 +55,7 @@ export default async function PassportPage({
         {/* Remember this guest on their device for native-camera scans. */}
         <RememberPassport passportId={guest.passportId} />
 
-        {/* Only VIPs and Industry Partners can scan event floor QR codes. */}
+        {/* Only VIPs can scan event floor QR codes. */}
         {canAccessEventScan(guest) && (
           <PassportScanner passportId={guest.passportId} />
         )}

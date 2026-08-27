@@ -1,7 +1,7 @@
 import type { Guest } from "./types";
 
 export function canAccessEventScan(guest: Pick<Guest, "guestType">): boolean {
-  return guest.guestType === "VIP" || guest.guestType === "Industry Partner";
+  return guest.guestType === "VIP";
 }
 
 export function canScanStation(

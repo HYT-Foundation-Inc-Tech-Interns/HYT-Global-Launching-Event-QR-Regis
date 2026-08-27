@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
 
     if (!canScanStation(currentGuest, station.floor)) {
       return NextResponse.json(
-        { error: "QR floor scanning is available only to VIP and Industry Partner guests on floors 1–3." },
+        { error: "QR floor scanning is available only to VIP guests on floors 1–3." },
         { status: 403 },
       );
     }
