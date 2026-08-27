@@ -6,7 +6,8 @@ import { Radio } from "lucide-react";
 export default function NfcPassportWriter({ passportId }: { passportId: string }) {
   const [status, setStatus] = useState("");
   const [writing, setWriting] = useState(false);
-  const nfcUrl = `https://hyt-passport.hytfoundationinterns-dreamacademy.workers.dev/passport/${encodeURIComponent(passportId)}`;
+  // URL-based NFC payload, preserved in case the web-link format is needed again:
+  // const nfcUrl = `https://hyt-passport.hytfoundationinterns-dreamacademy.workers.dev/passport/${encodeURIComponent(passportId)}`;
   async function writeNfc() {
     if (!("NDEFReader" in window)) {
       setStatus("NFC writing is supported on compatible Android browsers only.");
@@ -18,7 +19,9 @@ export default function NfcPassportWriter({ passportId }: { passportId: string }
     try {
       const Reader = (window as Window & { NDEFReader: new () => { write: (message: { records: { recordType: string; data: string }[] }) => Promise<void> } }).NDEFReader;
       const reader = new Reader();
-      await reader.write({ records: [{ recordType: "url", data: nfcUrl }] });
+      await reader.write({ records: [{ recordType: "text", data: passportId }] });
+      // Restore the URL payload above if the tag should open the passport page:
+      // await reader.write({ records: [{ recordType: "url", data: nfcUrl }] });
       setStatus("NFC tag written successfully.");
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "Could not write the NFC tag.");
