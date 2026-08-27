@@ -51,10 +51,11 @@ export interface CourseSetting {
   active: boolean;
 }
 
-// One row in the "Scan Logs" sheet tab.
+// One row in the "Scan Logs" sheet tab. NFC ID is stored in column G.
 export interface ScanLog {
   timestamp: string;
   passportId: string;
+  nfcId?: string;
   guestName: string;
   station: string; // floor / station label
   action: string; // e.g. "Stamped", "Already Completed", "Reward Claimed"

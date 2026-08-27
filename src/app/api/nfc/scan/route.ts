@@ -26,6 +26,7 @@ export async function POST(request: NextRequest) {
     await appendScanLog({
       timestamp: new Date().toISOString(),
       passportId,
+      nfcId: passportId,
       guestName: result.guest.fullName,
       station: "NFC Passport",
       action: "NFC Scan",
