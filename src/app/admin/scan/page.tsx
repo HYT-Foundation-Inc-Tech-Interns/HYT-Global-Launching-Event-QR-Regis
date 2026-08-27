@@ -131,16 +131,15 @@ export default function AdminScanPage() {
           {error && <div className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-700 ring-1 ring-red-200">{error}</div>}
           {guest && (
             <div className="mt-5 rounded-xl bg-green-50 p-4 text-left ring-1 ring-green-200">
-              <p className="text-lg font-bold text-green-800">Scan accepted</p>
+              <p className="text-lg font-bold text-green-800">Scan complete</p>
               <p className="mt-1 text-sm text-slate-700">{guest.fullName}</p>
-              <p className="font-mono text-xs text-slate-500">{guest.passportId}</p>
+              <p className="font-mono text-xs text-slate-500">Code: {guest.passportId}</p>
+              <p className="text-sm text-slate-700">Position: {guest.guestType}</p>
               {scannedAt && (
-                <div className="mt-3 border-t border-green-200 pt-3 text-sm text-green-800">
-                  <p className="font-semibold">date and time</p>
-                  <p>{new Date(scannedAt).toLocaleDateString()} at {new Date(scannedAt).toLocaleTimeString()}</p>
-                </div>
+                <p className="mt-3 border-t border-green-200 pt-3 text-sm text-green-800">
+                  {new Date(scannedAt).toLocaleDateString()} at {new Date(scannedAt).toLocaleTimeString()}
+                </p>
               )}
-              <p className="mt-3 text-sm font-bold text-green-800">Scans remaining: {remaining}</p>
             </div>
           )}
         </div>
