@@ -666,10 +666,9 @@ export async function toggleGuestAccountActive(
   const { guest, rowNumber } = found;
   const now = new Date().toISOString();
 
-  // Column U is accountActive (index 20)
-  await valuesUpdate(`${GUESTS_TAB}!U${rowNumber}:P${rowNumber}`, [
-    [accountActive ? "TRUE" : "FALSE", now],
-  ]);
+  // Update Column P (Last Updated) and Column U (accountActive)
+  await valuesUpdate(`${GUESTS_TAB}!P${rowNumber}`, [[now]]);
+  await valuesUpdate(`${GUESTS_TAB}!U${rowNumber}`, [[accountActive ? "TRUE" : "FALSE"]]);
 
   return {
     ok: true,
