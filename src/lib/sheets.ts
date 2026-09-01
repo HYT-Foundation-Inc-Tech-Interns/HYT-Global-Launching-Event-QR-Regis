@@ -522,7 +522,10 @@ export async function decrementGuestScanLimit(
     if (scansToday >= dailyLimit) return { ok: false, reason: "exhausted" };
     return { ok: true, remaining: dailyLimit - scansToday - 1, guest };
   }
-  if (guest.scanLimitDays === null) return { ok: false, reason: "unlimited" };
+  if (guest.scanLimitDays === null) {
+    // Unlimited scan access (e.g. Trainor, Intern)
+    return { ok: true, remaining: -1, guest };
+  }
   if (guest.scanLimitDays <= 0) return { ok: false, reason: "exhausted" };
 
   const remaining = guest.scanLimitDays - 1;

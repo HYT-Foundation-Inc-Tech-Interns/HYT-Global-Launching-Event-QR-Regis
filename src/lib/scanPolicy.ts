@@ -7,7 +7,7 @@ export interface ScanPolicy {
 }
 
 export function hasDailyAttendanceQuota(guestType: string): boolean {
-  return ["visitor", "vip", "employee"].includes(guestType.trim().toLowerCase());
+  return ["visitor", "vip", "employee", "intern", "trainor"].includes(guestType.trim().toLowerCase());
 }
 
 export function hasOneDayValidity(guestType: string): boolean {
@@ -20,11 +20,8 @@ export function getValidityLabel(
   if (guest.accountActive === false) return "Account inactive";
   if (hasOneDayValidity(guest.guestType)) return "Valid for 1 day";
   if (guest.validUntil) return `Valid until ${guest.validUntil}`;
-  if (hasDailyAttendanceQuota(guest.guestType)) return "2 attendance scans per day";
+  if (hasDailyAttendanceQuota(guest.guestType)) return "2 scans per day";
   const policy = getScanPolicy(guest);
-  if ((guest.guestType === "Trainor" || guest.guestType === "Intern") && policy.enabled) {
-    return "Unlimited scans (administrator controlled)";
-  }
   if (policy.maxDays === 1) return "Valid for 1 training day";
   if (policy.maxDays !== null) return `Valid for ${policy.maxDays} training days`;
   return "Validity disabled";
@@ -35,8 +32,6 @@ export function getScanPolicy(guest: Pick<Guest, "guestType" | "course" | "scanL
   if (guest.scanEnabled === false) return { enabled: false, maxDays: 0, dailyScans: 0 };
   if (hasDailyAttendanceQuota(guest.guestType)) return { enabled: true, maxDays: null, dailyScans: 2 };
   if (guest.scanLimitDays !== null) return { enabled: true, maxDays: guest.scanLimitDays, dailyScans: null };
-  if (guest.guestType === "Trainor") return { enabled: true, maxDays: null, dailyScans: null };
-  if (guest.guestType === "Intern") return { enabled: true, maxDays: null, dailyScans: null };
 
   const course = guest.course.toLowerCase();
   if (course.includes("barista")) return { enabled: true, maxDays: 4, dailyScans: null };
