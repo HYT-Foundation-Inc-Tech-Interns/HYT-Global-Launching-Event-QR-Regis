@@ -650,6 +650,34 @@ export async function claimReward(
 }
 
 /**
+ * Toggle a guest's account active status (enable/disable).
+ * Returns the updated guest on success.
+ */
+export async function toggleGuestAccountActive(
+  passportId: string,
+  accountActive: boolean
+): Promise<
+  | { ok: true; guest: Guest }
+  | { ok: false; reason: "not_found" }
+> {
+  const found = await findGuestRow(passportId);
+  if (!found) return { ok: false, reason: "not_found" };
+
+  const { guest, rowNumber } = found;
+  const now = new Date().toISOString();
+
+  // Column U is accountActive (index 20)
+  await valuesUpdate(`${GUESTS_TAB}!U${rowNumber}:P${rowNumber}`, [
+    [accountActive ? "TRUE" : "FALSE", now],
+  ]);
+
+  return {
+    ok: true,
+    guest: { ...guest, accountActive, lastUpdated: now },
+  };
+}
+
+/**
  * Append a row to the Scan Logs tab. Used for an audit trail of every
  * scan/stamp action. Column G stores the NFC ID when the scan came from NFC.
  */

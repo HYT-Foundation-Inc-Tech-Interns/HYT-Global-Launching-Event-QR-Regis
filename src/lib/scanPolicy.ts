@@ -22,8 +22,8 @@ export function getValidityLabel(
   if (guest.validUntil) return `Valid until ${guest.validUntil}`;
   if (hasDailyAttendanceQuota(guest.guestType)) return "2 attendance scans per day";
   const policy = getScanPolicy(guest);
-  if (guest.guestType === "Trainor" && policy.enabled) {
-    return "Valid while active (administrator controlled)";
+  if ((guest.guestType === "Trainor" || guest.guestType === "Intern") && policy.enabled) {
+    return "Unlimited scans (administrator controlled)";
   }
   if (policy.maxDays === 1) return "Valid for 1 training day";
   if (policy.maxDays !== null) return `Valid for ${policy.maxDays} training days`;
@@ -36,6 +36,7 @@ export function getScanPolicy(guest: Pick<Guest, "guestType" | "course" | "scanL
   if (hasDailyAttendanceQuota(guest.guestType)) return { enabled: true, maxDays: null, dailyScans: 2 };
   if (guest.scanLimitDays !== null) return { enabled: true, maxDays: guest.scanLimitDays, dailyScans: null };
   if (guest.guestType === "Trainor") return { enabled: true, maxDays: null, dailyScans: null };
+  if (guest.guestType === "Intern") return { enabled: true, maxDays: null, dailyScans: null };
 
   const course = guest.course.toLowerCase();
   if (course.includes("barista")) return { enabled: true, maxDays: 4, dailyScans: null };

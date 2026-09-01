@@ -17,7 +17,7 @@ import { PartyPopper } from "lucide-react";
  */
 
 // The roles offered in the dropdown. Edit freely for your event.
-const GUEST_TYPES = ["Trainee", "Trainor", "Employee", "VIP", "Visitor"];
+const GUEST_TYPES = ["Trainee", "Trainor", "Employee", "VIP", "Visitor", "Intern"];
 // Add the trainee course names here when they are provided.
 const COURSE_OPTIONS = [
   "Barista NC II",
