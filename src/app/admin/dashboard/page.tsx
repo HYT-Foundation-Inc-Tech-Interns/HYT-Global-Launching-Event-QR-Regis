@@ -7,7 +7,6 @@ import Header from "@/components/Header";
 import type { Guest } from "@/lib/types";
 import { getAccountStatus } from "@/lib/scanPolicy";
 import NfcPassportWriter from "@/components/NfcPassportWriter";
-import PasscodeVerification from "@/components/PasscodeVerification";
 
 /**
  * Admin dashboard (/admin/dashboard).
@@ -33,13 +32,7 @@ export default function AdminDashboard() {
   const [search, setSearch] = useState("");
   const [accountFilter, setAccountFilter] = useState<"all" | "active" | "inactive" | "expired">("all");
   const [claiming, setClaiming] = useState<string | null>(null);
-  const [passcodeModal, setPasscodeModal] = useState<{ isOpen: boolean; action: "enable" | "disable"; passportId: string; guestName: string }>({
-    isOpen: false,
-    action: "enable",
-    passportId: "",
-    guestName: "",
-  });
-  const [passcodeConfirming, setPasscodeConfirming] = useState<string | null>(null);
+
 
   async function load() {
     setLoading(true);
@@ -90,48 +83,6 @@ export default function AdminDashboard() {
       alert(err instanceof Error ? err.message : "Could not claim reward.");
     } finally {
       setClaiming(null);
-    }
-  }
-
-  function openAccountToggleModal(action: "enable" | "disable", guest: Guest) {
-    // First confirmation dialog
-    const confirmMessage = `Are you sure you want to ${action} the account for ${guest.fullName}?`;
-    if (!confirm(confirmMessage)) return;
-
-    // Open passcode verification modal
-    setPasscodeModal({
-      isOpen: true,
-      action,
-      passportId: guest.passportId,
-      guestName: guest.fullName,
-    });
-  }
-
-  async function handlePasscodeConfirm(credentialsJson: string) {
-    const credentials = JSON.parse(credentialsJson);
-    const { username, passcode } = credentials;
-
-    setPasscodeConfirming(passcodeModal.passportId);
-    try {
-      const res = await fetch("/api/admin/toggle-account", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          passportId: passcodeModal.passportId,
-          accountActive: passcodeModal.action === "enable",
-          adminUsername: username,
-          adminPassword: passcode,
-        }),
-      });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error || "Could not toggle account.");
-      
-      setPasscodeModal({ isOpen: false, action: "enable", passportId: "", guestName: "" });
-      await load(); // refresh the list
-    } catch (err) {
-      throw err;
-    } finally {
-      setPasscodeConfirming(null);
     }
   }
 
@@ -270,23 +221,6 @@ export default function AdminDashboard() {
                   </td>
                   <td className="px-4 py-3 space-y-2">
                     <NfcPassportWriter passportId={g.passportId} />
-                    {g.accountActive ? (
-                      <button
-                        onClick={() => openAccountToggleModal("disable", g)}
-                        disabled={passcodeConfirming === g.passportId}
-                        className="block w-full rounded-lg bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700 disabled:opacity-60"
-                      >
-                        {passcodeConfirming === g.passportId ? "..." : "Disable"}
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => openAccountToggleModal("enable", g)}
-                        disabled={passcodeConfirming === g.passportId}
-                        className="block w-full rounded-lg bg-green-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-green-700 disabled:opacity-60"
-                      >
-                        {passcodeConfirming === g.passportId ? "..." : "Enable"}
-                      </button>
-                    )}
                     {g.completedCount >= totalFloors &&
                     g.status !== "Reward Claimed" ? (
                       <button
@@ -307,13 +241,6 @@ export default function AdminDashboard() {
         </div>
       </section>
 
-      <PasscodeVerification
-        isOpen={passcodeModal.isOpen}
-        action={passcodeModal.action}
-        guestName={passcodeModal.guestName}
-        onConfirm={handlePasscodeConfirm}
-        onCancel={() => setPasscodeModal({ isOpen: false, action: "enable", passportId: "", guestName: "" })}
-      />
     </main>
   );
 }
