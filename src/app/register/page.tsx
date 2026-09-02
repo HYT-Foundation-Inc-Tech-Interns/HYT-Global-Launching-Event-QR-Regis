@@ -20,6 +20,7 @@ import { PartyPopper } from "lucide-react";
 const GUEST_TYPES = ["Trainee", "Trainor", "Employee", "VIP", "Visitor", "Intern"];
 // Add the trainee course names here when they are provided.
 const COURSE_OPTIONS = [
+  "Housekeeping NC II",
   "Barista NC II",
   "Hilot (Wellness) Massage NC II",
   "Events Management Services NC III",
