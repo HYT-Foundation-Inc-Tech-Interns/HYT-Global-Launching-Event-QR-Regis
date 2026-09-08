@@ -5,7 +5,7 @@
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import type { D1Database } from "@cloudflare/workers-types";
-import type { Guest, GuestStatus } from "./types";
+import type { Guest, GuestStatus, ScanLog } from "./types";
 
 declare global {
   interface CloudflareEnv {
@@ -258,8 +258,38 @@ export async function toggleGuestAccountActive(
 export async function getGuestScanCountToday(passportId: string): Promise<number> {
   const { env } = await getCloudflareContext({ async: true });
   const today = new Date().toISOString().slice(0, 10);
-  
-  // Note: This would need a scan_logs table to track scans by date
-  // For now, returning 0 as a placeholder
-  return 0;
+  const result = await env.DB
+    .prepare("SELECT COUNT(*) AS count FROM scan_logs WHERE passport_id = ?1 AND timestamp LIKE ?2")
+    .bind(passportId, `${today}%`)
+    .first<{ count: number }>();
+  return result?.count ?? 0;
+}
+
+export async function getGuestScanDays(passportId: string): Promise<string[]> {
+  const { env } = await getCloudflareContext({ async: true });
+  const result = await env.DB
+    .prepare("SELECT DISTINCT substr(timestamp, 1, 10) AS day FROM scan_logs WHERE passport_id = ?1 ORDER BY day")
+    .bind(passportId)
+    .all<{ day: string }>();
+  return (result.results || []).map((row) => row.day);
+}
+
+export async function appendScanLog(log: ScanLog): Promise<void> {
+  const { env } = await getCloudflareContext({ async: true });
+  await env.DB
+    .prepare(
+      `INSERT INTO scan_logs
+       (timestamp, passport_id, nfc_id, guest_name, station, action, scanner_page)
+       VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)`
+    )
+    .bind(
+      log.timestamp,
+      log.passportId,
+      log.nfcId || null,
+      log.guestName,
+      log.station,
+      log.action,
+      log.scannerPage,
+    )
+    .run();
 }

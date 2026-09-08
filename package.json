@@ -4,13 +4,14 @@
   "private": true,
   "description": "HYT Digital Passport - QR-based digital passport and registration system for events.",
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
     "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
     "create-admin": "node scripts/create-admin.mjs",
+    "import-sheets": "node scripts/import-sheets-to-d1.mjs",
     "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts"
   },
   "dependencies": {
@@ -22,7 +23,8 @@
     "next": "^15.5.19",
     "qrcode.react": "^4.0.1",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20260702.1",

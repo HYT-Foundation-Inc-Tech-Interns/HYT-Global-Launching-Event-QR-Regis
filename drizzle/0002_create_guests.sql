@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS guests (
   passport_id TEXT UNIQUE NOT NULL,
   full_name TEXT NOT NULL,
   email TEXT NOT NULL,
-  phone TEXT,
+  phone INTEGER,
   organization TEXT,
   guest_type TEXT NOT NULL,
   course TEXT,

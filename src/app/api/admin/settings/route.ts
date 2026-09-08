@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCourseSettings, saveCourseSettings } from "@/lib/sheets";
+import { getCourseSettings, saveCourseSettings } from "@/lib/sheets-new";
 import type { CourseSetting } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -42,7 +42,7 @@ export async function PUT(request: NextRequest) {
   } catch (error) {
     console.error("PUT /api/admin/settings failed:", error);
     return NextResponse.json(
-      { error: "Could not save settings. Create an 'Admin Settings' sheet tab first." },
+      { error: "Could not save course settings." },
       { status: 500 },
     );
   }

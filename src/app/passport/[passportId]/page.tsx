@@ -3,7 +3,7 @@ import Header from "@/components/Header";
 import PassportCard from "@/components/PassportCard";
 import PassportScanner from "@/components/PassportScanner";
 import RememberPassport from "@/components/RememberPassport";
-import { getGuestById } from "@/lib/sheets";
+import { getGuestById } from "@/lib/sheets-new";
 import { canAccessEventScan } from "@/lib/accessPolicy";
 
 /**

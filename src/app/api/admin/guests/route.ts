@@ -6,7 +6,7 @@
  */
 
 import { NextResponse } from "next/server";
-import { getAllGuests } from "@/lib/sheets";
+import { getAllGuests } from "@/lib/guest-db";
 import { TOTAL_FLOORS } from "@/lib/stations";
 
 export const dynamic = "force-dynamic";

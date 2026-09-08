@@ -503,6 +503,22 @@ export async function saveCourseSettings(settings: CourseSetting[]): Promise<voi
   );
 }
 
+/** Export the D1-authoritative settings to Sheets. Never read settings from Sheets. */
+export async function syncCourseSettingsToSheet(settings: CourseSetting[]): Promise<void> {
+  await ensureAdminSettingsTab();
+  await valuesClear(`${ADMIN_SETTINGS_TAB}!A2:D100`);
+  if (settings.length === 0) return;
+  await valuesUpdate(
+    `${ADMIN_SETTINGS_TAB}!A2:D${settings.length + 1}`,
+    settings.map((setting) => [
+      setting.course,
+      setting.scanLimitDays === null ? "" : String(setting.scanLimitDays),
+      setting.validUntil,
+      setting.active ? "TRUE" : "FALSE",
+    ]),
+  );
+}
+
 export async function decrementGuestScanLimit(
   passportId: string,
 ): Promise<

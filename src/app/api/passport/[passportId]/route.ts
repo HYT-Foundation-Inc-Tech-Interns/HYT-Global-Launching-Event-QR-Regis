@@ -6,7 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { getGuestById } from "@/lib/sheets";
+import { getGuestById } from "@/lib/sheets-new";
 import { isGuestAccountActive } from "@/lib/scanPolicy";
 
 export const dynamic = "force-dynamic";

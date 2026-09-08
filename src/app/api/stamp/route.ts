@@ -14,7 +14,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { getGuestById, getGuestScanDays, stampFloor, appendScanLog } from "@/lib/sheets";
+import { getGuestById, getGuestScanDays, stampFloor, appendScanLog } from "@/lib/sheets-new";
 import { getStationById } from "@/lib/stations";
 import { getScanPolicy, isGuestAccountActive } from "@/lib/scanPolicy";
 import { canScanStation } from "@/lib/accessPolicy";

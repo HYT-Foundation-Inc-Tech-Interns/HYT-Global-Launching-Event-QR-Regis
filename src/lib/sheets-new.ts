@@ -18,6 +18,8 @@ import {
   markRewardClaimed,
   toggleGuestAccountActive,
   getGuestScanCountToday,
+  getGuestScanDays as getGuestScanDaysFromDb,
+  appendScanLog as appendScanLogToDb,
 } from "./guest-db";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import type { D1Database } from "@cloudflare/workers-types";
@@ -52,6 +54,14 @@ export async function findGuestRow(
   const guest = await findGuestByPassportId(passportId);
   if (!guest) return null;
   return { guest, rowNumber: 0 }; // rowNumber not needed for D1
+}
+
+export async function getGuestById(passportId: string): Promise<Guest | null> {
+  return findGuestByPassportId(passportId);
+}
+
+export async function getGuestScanDays(passportId: string): Promise<string[]> {
+  return getGuestScanDaysFromDb(passportId);
 }
 
 /**
@@ -197,8 +207,7 @@ export async function toggleGuestAccountActiveDb(
  * Placeholder - implement as needed.
  */
 export async function appendScanLog(log: ScanLog): Promise<void> {
-  // TODO: Create a scan_logs table if needed for audit trail
-  console.log("Scan logged:", log);
+  await appendScanLogToDb(log);
 }
 
 /**
@@ -234,12 +243,21 @@ export async function getAdminLoginCredentials(
  * Placeholder - implement admin settings table if needed.
  */
 export async function getCourseSettings(): Promise<CourseSetting[]> {
-  // TODO: Create admin_settings table and populate from there
-  return [
-    { course: "Barista NC II", scanLimitDays: 4, validUntil: "", active: true },
-    { course: "Hilot (Wellness) Massage NC II", scanLimitDays: 5, validUntil: "", active: true },
-    { course: "Events Management Services NC III", scanLimitDays: 1, validUntil: "", active: true },
-  ];
+  const { env } = await getCloudflareContext({ async: true });
+  const result = await env.DB
+    .prepare(
+      `SELECT course, scan_limit_days AS scanLimitDays,
+              valid_until AS validUntil, active
+       FROM admin_settings ORDER BY course`
+    )
+    .all<{ course: string; scanLimitDays: number | null; validUntil: string; active: number }>();
+
+  return (result.results || []).map((setting) => ({
+    course: setting.course,
+    scanLimitDays: setting.scanLimitDays,
+    validUntil: setting.validUntil,
+    active: Boolean(setting.active),
+  }));
 }
 
 /**
@@ -247,7 +265,35 @@ export async function getCourseSettings(): Promise<CourseSetting[]> {
  * Placeholder - implement admin settings table if needed.
  */
 export async function saveCourseSettings(settings: CourseSetting[]): Promise<CourseSetting[]> {
-  // TODO: Update admin_settings table
+  const { env } = await getCloudflareContext({ async: true });
+  const now = new Date().toISOString();
+  const statements = [
+    env.DB.prepare("DELETE FROM admin_settings"),
+    ...settings.map((setting) =>
+      env.DB
+        .prepare(
+          `INSERT INTO admin_settings
+           (course, scan_limit_days, valid_until, active, updated_at)
+           VALUES (?1, ?2, ?3, ?4, ?5)`
+        )
+        .bind(
+          setting.course,
+          setting.scanLimitDays,
+          setting.validUntil,
+          setting.active ? 1 : 0,
+          now,
+        )
+    ),
+  ];
+  await env.DB.batch(statements);
+
+  try {
+    const { syncCourseSettingsToSheet } = await import("./sheets");
+    await syncCourseSettingsToSheet(settings);
+  } catch (error) {
+    console.error("Could not export course settings to Google Sheets:", error);
+  }
+
   return settings;
 }
 

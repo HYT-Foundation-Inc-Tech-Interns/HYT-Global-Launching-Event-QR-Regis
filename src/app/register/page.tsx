@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import { savePassportProfile } from "@/components/ProfileMenu";
@@ -18,13 +18,6 @@ import { PartyPopper } from "lucide-react";
 
 // The roles offered in the dropdown. Edit freely for your event.
 const GUEST_TYPES = ["Trainee", "Trainor", "Employee", "VIP", "Visitor", "Intern"];
-// Add the trainee course names here when they are provided.
-const COURSE_OPTIONS = [
-  "Housekeeping NC II",
-  "Barista NC II",
-  "Hilot (Wellness) Massage NC II",
-  "Events Management Services NC III",
-];
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -39,9 +32,20 @@ export default function RegisterPage() {
   });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [courseOptions, setCourseOptions] = useState<string[]>([]);
   // Stays true from a successful submit until the passport page takes over,
   // so the form never flashes back while the navigation is in flight.
   const [redirecting, setRedirecting] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/course-settings", { cache: "no-store" })
+      .then(async (response) => {
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Could not load courses.");
+        setCourseOptions(data.courses);
+      })
+      .catch(() => setCourseOptions([]));
+  }, []);
 
   function update(field: keyof typeof form, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -175,9 +179,9 @@ export default function RegisterPage() {
                   className="w-full rounded-xl border border-slate-300 px-4 py-3 text-base focus:border-brand-blue focus:outline-none focus:ring-2 focus:ring-brand-blue/30"
                 >
                   <option value="">
-                    {COURSE_OPTIONS.length ? "Select a course" : "Courses coming soon"}
+                    {courseOptions.length ? "Select a course" : "Courses coming soon"}
                   </option>
-                  {COURSE_OPTIONS.map((course) => (
+                  {courseOptions.map((course) => (
                     <option key={course} value={course}>
                       {course}
                     </option>

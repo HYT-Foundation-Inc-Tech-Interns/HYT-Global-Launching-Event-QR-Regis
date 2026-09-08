@@ -8,7 +8,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { claimReward, appendScanLog } from "@/lib/sheets";
+import { claimReward, appendScanLog } from "@/lib/sheets-new";
 
 export const dynamic = "force-dynamic";
 

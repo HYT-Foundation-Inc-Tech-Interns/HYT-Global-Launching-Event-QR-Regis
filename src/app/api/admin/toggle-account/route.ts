@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isCorrectAdminCredentials } from "@/lib/admin-auth";
-import { toggleGuestAccountActive } from "@/lib/sheets";
+import { toggleGuestAccountActiveDb } from "@/lib/sheets-new";
 
 export const dynamic = "force-dynamic";
 
@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Toggle the account status
-    const result = await toggleGuestAccountActive(passportId, accountActive);
+    const result = await toggleGuestAccountActiveDb(passportId, accountActive);
 
     if (!result.ok) {
       return NextResponse.json({ error: "Guest not found." }, { status: 404 });

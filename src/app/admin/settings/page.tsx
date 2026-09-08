@@ -5,12 +5,6 @@ import Link from "next/link";
 import Header from "@/components/Header";
 import type { CourseSetting } from "@/lib/types";
 
-const DEFAULT_COURSES = [
-  "Barista NC II",
-  "Hilot (Wellness) Massage NC II",
-  "Events Management Services NC III",
-];
-
 function emptySetting(course = ""): CourseSetting {
   return { course, scanLimitDays: null, validUntil: "", active: true };
 }
@@ -26,7 +20,7 @@ export default function AdminSettingsPage() {
       .then(async (response) => {
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || "Could not load settings.");
-        setSettings(data.settings.length ? data.settings : DEFAULT_COURSES.map(emptySetting));
+        setSettings(data.settings);
       })
       .catch((error) => setMessage(error instanceof Error ? error.message : "Could not load settings."))
       .finally(() => setLoading(false));
@@ -79,7 +73,7 @@ export default function AdminSettingsPage() {
             </thead>
             <tbody className="divide-y divide-slate-100">
               {loading ? <tr><td colSpan={4} className="px-4 py-8 text-center text-slate-400">Loading settings...</td></tr> : settings.map((setting, index) => (
-                <tr key={`${index}-${setting.course}`}>
+                <tr key={index}>
                   <td className="px-4 py-3"><input value={setting.course} onChange={(event) => update(index, { course: event.target.value })} className="w-full rounded-lg border border-slate-300 px-3 py-2" /></td>
                   <td className="px-4 py-3"><input type="number" min="0" value={setting.scanLimitDays ?? ""} onChange={(event) => update(index, { scanLimitDays: event.target.value === "" ? null : Number(event.target.value) })} className="w-32 rounded-lg border border-slate-300 px-3 py-2" /></td>
                   <td className="px-4 py-3"><input type="date" value={setting.validUntil} onChange={(event) => update(index, { validUntil: event.target.value })} className="rounded-lg border border-slate-300 px-3 py-2" /></td>
@@ -95,7 +89,7 @@ export default function AdminSettingsPage() {
           <button onClick={save} disabled={loading || saving} className="rounded-lg bg-[#0C005B] px-4 py-2 text-sm font-semibold text-white disabled:opacity-60">{saving ? "Saving..." : "Save settings"}</button>
         </div>
 
-        <p className="mt-5 text-xs text-slate-500">Create a Google Sheets tab named <strong>Admin Settings</strong> with columns A: Course, B: Scan Limit Days, C: Valid Until, D: Active.</p>
+        <p className="mt-5 text-xs text-slate-500">Settings are stored in the database. A copy is exported to the Admin Settings sheet for reference.</p>
       </section>
     </main>
   );

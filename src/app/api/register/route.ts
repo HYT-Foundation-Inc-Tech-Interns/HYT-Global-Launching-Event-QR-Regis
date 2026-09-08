@@ -7,7 +7,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { appendGuest, getCourseSetting } from "@/lib/sheets";
+import { appendGuest, getCourseSetting } from "@/lib/sheets-new";
 import type { RegistrationInput } from "@/lib/types";
 
 // Always run on the server at request time (never statically cached).

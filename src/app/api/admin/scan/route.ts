@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { appendScanLog, decrementGuestScanLimit } from "@/lib/sheets";
+import { appendScanLog, decrementGuestScanLimit } from "@/lib/sheets-new";
 
 export const dynamic = "force-dynamic";
 
