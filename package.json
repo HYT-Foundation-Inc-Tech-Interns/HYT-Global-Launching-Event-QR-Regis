@@ -12,6 +12,7 @@
     "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
     "create-admin": "node scripts/create-admin.mjs",
     "import-sheets": "node scripts/import-sheets-to-d1.mjs",
+    "import-guests": "node scripts/import-guests-to-d1.mjs",
     "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts"
   },
   "dependencies": {

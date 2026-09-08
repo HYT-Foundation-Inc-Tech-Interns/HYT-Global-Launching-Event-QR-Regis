@@ -64,6 +64,24 @@ export async function getGuestScanDays(passportId: string): Promise<string[]> {
   return getGuestScanDaysFromDb(passportId);
 }
 
+async function mirrorGuest(guest: Guest): Promise<void> {
+  try {
+    const { syncGuestToSheet } = await import("./sheets");
+    await syncGuestToSheet(guest);
+  } catch (error) {
+    console.error("Could not mirror guest to Google Sheets:", error);
+  }
+}
+
+async function appendGuestMirror(guest: Guest): Promise<void> {
+  try {
+    const { appendGuestToSheet } = await import("./sheets");
+    await appendGuestToSheet(guest);
+  } catch (error) {
+    console.error("Could not mirror newly-created guest to Google Sheets:", error);
+  }
+}
+
 /**
  * Register a new guest with a generated passport ID.
  */
@@ -97,6 +115,8 @@ export async function appendGuest(
     scanLimitDays,
     validUntil
   );
+
+  await appendGuestMirror(guest);
 
   return guest;
 }
@@ -134,6 +154,7 @@ export async function decrementGuestScanLimit(
 
   const remaining = guest.scanLimitDays - 1;
   const updatedGuest = await updateGuestScanLimit(passportId, remaining);
+  if (updatedGuest) await mirrorGuest(updatedGuest);
 
   return {
     ok: true,
@@ -164,6 +185,7 @@ export async function stampFloor(
   }
 
   const updatedGuest = await markFloorCompleted(passportId, floorIndex);
+  if (updatedGuest) await mirrorGuest(updatedGuest);
   return { ok: true, guest: updatedGuest || guest };
 }
 
@@ -184,6 +206,7 @@ export async function claimReward(
   }
 
   const updatedGuest = await markRewardClaimed(passportId);
+  if (updatedGuest) await mirrorGuest(updatedGuest);
   return { ok: true, guest: updatedGuest || guest };
 }
 
@@ -199,6 +222,7 @@ export async function toggleGuestAccountActiveDb(
 > {
   const updatedGuest = await toggleGuestAccountActive(passportId, accountActive);
   if (!updatedGuest) return { ok: false, reason: "not_found" };
+  await mirrorGuest(updatedGuest);
   return { ok: true, guest: updatedGuest };
 }
 
@@ -208,6 +232,12 @@ export async function toggleGuestAccountActiveDb(
  */
 export async function appendScanLog(log: ScanLog): Promise<void> {
   await appendScanLogToDb(log);
+  try {
+    const { syncScanLogToSheet } = await import("./sheets");
+    await syncScanLogToSheet(log);
+  } catch (error) {
+    console.error("Could not mirror scan log to Google Sheets:", error);
+  }
 }
 
 /**
@@ -286,13 +316,6 @@ export async function saveCourseSettings(settings: CourseSetting[]): Promise<Cou
     ),
   ];
   await env.DB.batch(statements);
-
-  try {
-    const { syncCourseSettingsToSheet } = await import("./sheets");
-    await syncCourseSettingsToSheet(settings);
-  } catch (error) {
-    console.error("Could not export course settings to Google Sheets:", error);
-  }
 
   return settings;
 }

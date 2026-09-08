@@ -457,6 +457,59 @@ export async function appendGuest(
   };
 }
 
+/** Mirror a D1 guest into the legacy Guests tab without making Sheets authoritative. */
+export async function syncGuestToSheet(guest: Guest): Promise<void> {
+  const rows = await valuesGet(`${GUESTS_TAB}!A2:A`);
+  const existingIndex = rows.findIndex((row) => (row[0] || "").trim() === guest.passportId);
+  const rowNumber = existingIndex >= 0 ? existingIndex + 2 : rows.length + 2;
+  const row = [
+    guest.passportId,
+    guest.fullName,
+    guest.email,
+    guest.phone,
+    guest.organization,
+    guest.guestType,
+    guest.passportLink,
+    ...guest.floors.map((completed) => completed ? COMPLETED_VALUE : ""),
+    String(guest.completedCount),
+    guest.status,
+    guest.registeredAt,
+    guest.lastUpdated,
+    guest.course,
+    guest.purpose,
+    guest.scanLimitDays === null ? "" : String(guest.scanLimitDays),
+    guest.scanEnabled ? "TRUE" : "FALSE",
+    guest.accountActive ? "TRUE" : "FALSE",
+    guest.validUntil,
+  ];
+  await valuesUpdate(`${GUESTS_TAB}!A${rowNumber}:V${rowNumber}`, [row]);
+}
+
+/** Append a newly-created D1 guest to Sheets without reading Sheets first. */
+export async function appendGuestToSheet(guest: Guest): Promise<void> {
+  const row = [
+    guest.passportId,
+    guest.fullName,
+    guest.email,
+    guest.phone,
+    guest.organization,
+    guest.guestType,
+    guest.passportLink,
+    ...guest.floors.map((completed) => completed ? COMPLETED_VALUE : ""),
+    String(guest.completedCount),
+    guest.status,
+    guest.registeredAt,
+    guest.lastUpdated,
+    guest.course,
+    guest.purpose,
+    guest.scanLimitDays === null ? "" : String(guest.scanLimitDays),
+    guest.scanEnabled ? "TRUE" : "FALSE",
+    guest.accountActive ? "TRUE" : "FALSE",
+    guest.validUntil,
+  ];
+  await valuesAppend(`${GUESTS_TAB}!A:V`, [row]);
+}
+
 function rowToCourseSetting(row: string[]): CourseSetting | null {
   const course = String(row[0] || "").trim();
   if (!course) return null;
@@ -711,6 +764,18 @@ export async function appendScanLog(log: ScanLog): Promise<void> {
       log.nfcId || "",
     ],
   ]);
+}
+
+export async function syncScanLogToSheet(log: ScanLog): Promise<void> {
+  await valuesAppend(`${SCAN_LOGS_TAB}!A:G`, [[
+    log.timestamp,
+    log.passportId,
+    log.guestName,
+    log.station,
+    log.action,
+    log.scannerPage,
+    log.nfcId || "",
+  ]]);
 }
 
 /**

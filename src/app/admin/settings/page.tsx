@@ -13,6 +13,7 @@ export default function AdminSettingsPage() {
   const [settings, setSettings] = useState<CourseSetting[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [importing, setImporting] = useState(false);
   const [message, setMessage] = useState("");
 
   useEffect(() => {
@@ -52,6 +53,27 @@ export default function AdminSettingsPage() {
     }
   }
 
+  async function importWorkbook(file: File | undefined) {
+    if (!file) return;
+    setImporting(true);
+    setMessage("");
+    try {
+      const body = new FormData();
+      body.append("workbook", file);
+      const response = await fetch("/api/admin/import-workbook", { method: "POST", body });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Could not import workbook.");
+      const refreshed = await fetch("/api/admin/settings", { cache: "no-store" });
+      const refreshedData = await refreshed.json();
+      setSettings(refreshedData.settings || []);
+      setMessage(`Imported ${data.imported.guests} guests, ${data.imported.settings} settings, ${data.imported.logs} logs, and ${data.imported.admins} admins.`);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Could not import workbook.");
+    } finally {
+      setImporting(false);
+    }
+  }
+
   return (
     <main>
       <Header subtitle="Administrator settings" />
@@ -87,9 +109,13 @@ export default function AdminSettingsPage() {
         <div className="mt-5 flex flex-wrap gap-3">
           <button onClick={() => setSettings((current) => [...current, emptySetting()])} className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700">Add course</button>
           <button onClick={save} disabled={loading || saving} className="rounded-lg bg-[#0C005B] px-4 py-2 text-sm font-semibold text-white disabled:opacity-60">{saving ? "Saving..." : "Save settings"}</button>
+          <label className="cursor-pointer rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700">
+            {importing ? "Importing..." : "Import Excel workbook"}
+            <input type="file" accept=".xlsx,.xls" disabled={importing} className="sr-only" onChange={(event) => { void importWorkbook(event.target.files?.[0]); event.currentTarget.value = ""; }} />
+          </label>
         </div>
 
-        <p className="mt-5 text-xs text-slate-500">Settings are stored in the database. A copy is exported to the Admin Settings sheet for reference.</p>
+        <p className="mt-5 text-xs text-slate-500">Download your spreadsheet as Excel, then upload it here to import the local database snapshot.</p>
       </section>
     </main>
   );
