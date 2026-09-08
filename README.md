@@ -297,21 +297,85 @@ Before deployment:
 ## Project structure
 
 ```text
-drizzle/
-  0001_create_admins.sql
-  0002_create_guests.sql
-  0003_create_scan_logs.sql
-  0004_create_admin_settings.sql
-scripts/
-  create-admin.mjs
-src/
-  app/                 Next.js pages and API routes
-  components/          Passport, QR, scanner, and admin UI
-  lib/guest-db.ts      D1 guest and scan-log operations
-  lib/sheets-new.ts    D1-facing application helpers
-  lib/sheets.ts        Optional Google Sheets mirror and legacy adapter
-  lib/stations.ts      Event station definitions
-  lib/scanPolicy.ts    Guest scan and validity rules
-  lib/passport-id.ts   QR/NFC passport ID extraction
-wrangler.jsonc         Cloudflare Worker and D1 configuration
+.
+├── drizzle/
+│   ├── 0001_create_admins.sql
+│   ├── 0002_create_guests.sql
+│   ├── 0003_create_scan_logs.sql
+│   └── 0004_create_admin_settings.sql
+├── public/
+│   ├── hyt-global-institute.png
+│   ├── hyt-global-institute.svg
+│   └── roofdeck.jpg
+├── scripts/
+│   └── create-admin.mjs
+├── src/
+│   ├── app/
+│   │   ├── api/
+│   │   │   ├── admin/
+│   │   │   │   ├── claim/route.ts
+│   │   │   │   ├── guests/route.ts
+│   │   │   │   ├── login/route.ts
+│   │   │   │   ├── scan/route.ts
+│   │   │   │   ├── settings/route.ts
+│   │   │   │   └── toggle-account/route.ts
+│   │   │   ├── course-settings/route.ts
+│   │   │   ├── passport/[passportId]/route.ts
+│   │   │   ├── register/route.ts
+│   │   │   └── stamp/route.ts
+│   │   ├── admin/
+│   │   │   ├── dashboard/page.tsx
+│   │   │   ├── login/
+│   │   │   │   ├── LoginForm.tsx
+│   │   │   │   └── page.tsx
+│   │   │   ├── scan/
+│   │   │   │   ├── [floor]/page.tsx
+│   │   │   │   └── page.tsx
+│   │   │   ├── settings/page.tsx
+│   │   │   └── station-codes/page.tsx
+│   │   ├── complete/[floor]/page.tsx
+│   │   ├── passport/[passportId]/page.tsx
+│   │   ├── register/page.tsx
+│   │   ├── globals.css
+│   │   ├── head.tsx
+│   │   ├── layout.tsx
+│   │   └── page.tsx
+│   ├── components/
+│   │   ├── FloorList.tsx
+│   │   ├── Header.tsx
+│   │   ├── HomeGate.tsx
+│   │   ├── LandingCta.tsx
+│   │   ├── NfcPassportWriter.tsx
+│   │   ├── PasscodeVerification.tsx
+│   │   ├── PassportCard.tsx
+│   │   ├── PassportScanner.tsx
+│   │   ├── ProfileMenu.tsx
+│   │   ├── ProgressBar.tsx
+│   │   ├── QrScanner.tsx
+│   │   ├── RememberPassport.tsx
+│   │   ├── ScannerBoundary.tsx
+│   │   └── StampIcon.tsx
+│   └── lib/
+│       ├── accessPolicy.ts
+│       ├── admin-auth.ts
+│       ├── admin-db.ts
+│       ├── guest-db.ts
+│       ├── passport-id.ts
+│       ├── scanPolicy.ts
+│       ├── sheets-new.ts
+│       ├── sheets.ts
+│       ├── stations.ts
+│       └── types.ts
+├── .env.local.example
+├── middleware.ts
+├── next-env.d.ts
+├── next.config.js
+├── open-next.config.ts
+├── package.json
+├── package-lock.json
+├── postcss.config.js
+├── tailwind.config.ts
+├── tsconfig.json
+└── wrangler.jsonc
 ```
+
