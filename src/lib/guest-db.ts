@@ -14,8 +14,9 @@ declare global {
 }
 
 /**
- * Generate a unique passport ID in format HYT-YYYY-XXXX
- * where YYYY is the year and XXXX is a 4-digit sequential number.
+ * Generate a passport ID in format HYT-YYYY-XXXX-xxxxxxxx.
+ * The random suffix makes the QR value harder to guess while the sequence
+ * remains readable for staff.
  */
 export async function generatePassportId(): Promise<string> {
   const { env } = await getCloudflareContext({ async: true });
@@ -29,7 +30,12 @@ export async function generatePassportId(): Promise<string> {
   
   const count = (result?.count ?? 0) + 1;
   const paddedCount = String(count).padStart(4, "0");
-  return `HYT-${year}-${paddedCount}`;
+  const randomBytes = new Uint8Array(4);
+  crypto.getRandomValues(randomBytes);
+  const randomToken = Array.from(randomBytes, (byte) =>
+    byte.toString(16).padStart(2, "0")
+  ).join("");
+  return `HYT-${year}-${paddedCount}-${randomToken}`;
 }
 
 /**
