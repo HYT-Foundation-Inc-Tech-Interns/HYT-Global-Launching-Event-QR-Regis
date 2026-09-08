@@ -298,84 +298,87 @@ Before deployment:
 
 ```text
 .
-├── drizzle/
+├── drizzle/                         # D1 database migrations
 │   ├── 0001_create_admins.sql
-│   ├── 0002_create_guests.sql
-│   ├── 0003_create_scan_logs.sql
-│   └── 0004_create_admin_settings.sql
-├── public/
-│   ├── hyt-global-institute.png
-│   ├── hyt-global-institute.svg
-│   └── roofdeck.jpg
-├── scripts/
-│   └── create-admin.mjs
+│   │                                  # Admin usernames and password hashes
+│   ├── 0002_create_guests.sql         # Guest profiles and passport records
+│   ├── 0003_create_scan_logs.sql      # Guest scan audit history
+│   └── 0004_create_admin_settings.sql # Database course settings
+├── public/                           # Static images and branding assets
+│   ├── hyt-global-institute.png       # Institute logo for image contexts
+│   ├── hyt-global-institute.svg       # Scalable institute logo
+│   └── roofdeck.jpg                   # Landing-page background image
+├── scripts/                          # Terminal automation scripts
+│   └── create-admin.mjs               # Creates or resets a terminal-only admin
 ├── src/
-│   ├── app/
-│   │   ├── api/
-│   │   │   ├── admin/
-│   │   │   │   ├── claim/route.ts
-│   │   │   │   ├── guests/route.ts
-│   │   │   │   ├── login/route.ts
-│   │   │   │   ├── scan/route.ts
-│   │   │   │   ├── settings/route.ts
-│   │   │   │   └── toggle-account/route.ts
-│   │   │   ├── course-settings/route.ts
-│   │   │   ├── passport/[passportId]/route.ts
-│   │   │   ├── register/route.ts
-│   │   │   └── stamp/route.ts
-│   │   ├── admin/
-│   │   │   ├── dashboard/page.tsx
+│   ├── app/                          # Next.js pages, layouts, and API routes
+│   │   ├── api/                      # Server-side HTTP endpoints
+│   │   │   ├── admin/                # Authenticated administrator endpoints
+│   │   │   │   ├── claim/route.ts     # Marks a completed reward as claimed
+│   │   │   │   ├── guests/route.ts    # Returns the admin guest list
+│   │   │   │   ├── login/route.ts     # Creates an admin session
+│   │   │   │   ├── scan/route.ts      # Processes an admin guest scan
+│   │   │   │   ├── settings/route.ts  # Reads and saves course settings
+│   │   │   │   └── toggle-account/route.ts # Enables or disables a guest
+│   │   │   ├── course-settings/route.ts # Public list of active courses
+│   │   │   ├── passport/[passportId]/route.ts # Public passport lookup
+│   │   │   ├── register/route.ts      # Creates a guest in D1
+│   │   │   └── stamp/route.ts         # Records a floor completion
+│   │   ├── admin/                    # Protected administrator pages
+│   │   │   ├── dashboard/page.tsx      # Guest totals, search, and claiming
 │   │   │   ├── login/
-│   │   │   │   ├── LoginForm.tsx
-│   │   │   │   └── page.tsx
+│   │   │   │   ├── LoginForm.tsx       # Admin username/password form
+│   │   │   │   └── page.tsx            # Admin login page
 │   │   │   ├── scan/
-│   │   │   │   ├── [floor]/page.tsx
-│   │   │   │   └── page.tsx
-│   │   │   ├── settings/page.tsx
-│   │   │   └── station-codes/page.tsx
-│   │   ├── complete/[floor]/page.tsx
-│   │   ├── passport/[passportId]/page.tsx
-│   │   ├── register/page.tsx
-│   │   ├── globals.css
-│   │   ├── head.tsx
-│   │   ├── layout.tsx
-│   │   └── page.tsx
-│   ├── components/
-│   │   ├── FloorList.tsx
-│   │   ├── Header.tsx
-│   │   ├── HomeGate.tsx
-│   │   ├── LandingCta.tsx
-│   │   ├── NfcPassportWriter.tsx
-│   │   ├── PasscodeVerification.tsx
-│   │   ├── PassportCard.tsx
-│   │   ├── PassportScanner.tsx
-│   │   ├── ProfileMenu.tsx
-│   │   ├── ProgressBar.tsx
-│   │   ├── QrScanner.tsx
-│   │   ├── RememberPassport.tsx
-│   │   ├── ScannerBoundary.tsx
-│   │   └── StampIcon.tsx
-│   └── lib/
-│       ├── accessPolicy.ts
-│       ├── admin-auth.ts
-│       ├── admin-db.ts
-│       ├── guest-db.ts
-│       ├── passport-id.ts
-│       ├── scanPolicy.ts
-│       ├── sheets-new.ts
-│       ├── sheets.ts
-│       ├── stations.ts
-│       └── types.ts
-├── .env.local.example
-├── middleware.ts
-├── next-env.d.ts
-├── next.config.js
-├── open-next.config.ts
-├── package.json
-├── package-lock.json
-├── postcss.config.js
-├── tailwind.config.ts
-├── tsconfig.json
-└── wrangler.jsonc
+│   │   │   │   ├── [floor]/page.tsx    # Staff scanner for one floor
+│   │   │   │   └── page.tsx            # General admin QR/NFC scanner
+│   │   │   ├── settings/page.tsx       # Course settings editor
+│   │   │   └── station-codes/page.tsx  # Printable station QR codes
+│   │   ├── complete/[floor]/page.tsx  # Native-camera station completion page
+│   │   ├── passport/[passportId]/page.tsx # Guest digital passport page
+│   │   ├── register/page.tsx           # Guest registration form
+│   │   ├── globals.css                 # Tailwind and global styles
+│   │   ├── head.tsx                    # Document head metadata
+│   │   ├── layout.tsx                  # Root application layout
+│   │   └── page.tsx                    # Public landing page
+│   ├── components/                    # Reusable UI components
+│   │   ├── FloorList.tsx               # Displays completed floor stations
+│   │   ├── Header.tsx                  # Shared application header
+│   │   ├── HomeGate.tsx                # Controls public home entry state
+│   │   ├── LandingCta.tsx              # Landing-page registration/passport CTA
+│   │   ├── NfcPassportWriter.tsx       # Writes a passport URL to NFC
+│   │   ├── PasscodeVerification.tsx    # Confirms sensitive admin actions
+│   │   ├── PassportCard.tsx             # Displays passport details and QR
+│   │   ├── PassportScanner.tsx          # Guest self-scans station QR codes
+│   │   ├── ProfileMenu.tsx              # Shows remembered passport profile
+│   │   ├── ProgressBar.tsx              # Displays floor completion progress
+│   │   ├── QrScanner.tsx                # Camera QR decoding component
+│   │   ├── RememberPassport.tsx          # Stores passport ID on the device
+│   │   ├── ScannerBoundary.tsx           # Error boundary around camera scanning
+│   │   └── StampIcon.tsx                 # Visual stamp/status icon
+│   └── lib/                          # Database, policy, and shared domain logic
+│       ├── accessPolicy.ts            # Guest access rules by role
+│       ├── admin-auth.ts              # Password verification and sessions
+│       ├── admin-db.ts                # Admin credential queries
+│       ├── guest-db.ts                # D1 guest and scan-log operations
+│       ├── passport-id.ts             # QR/NFC passport ID extraction
+│       ├── scanPolicy.ts              # Scan limits and validity rules
+│       ├── sheets-new.ts              # D1-facing application helpers
+│       ├── sheets.ts                  # Optional Google Sheets mirror
+│       ├── stations.ts                # Event station definitions
+│       └── types.ts                   # Shared TypeScript types
+├── .env.local.example                 # Environment variable template
+├── middleware.ts                      # Protects administrator routes
+├── next-env.d.ts                      # Next.js TypeScript declarations
+├── next.config.js                     # Next.js configuration
+├── open-next.config.ts                # OpenNext Cloudflare configuration
+├── package.json                       # Scripts and dependencies
+├── package-lock.json                  # Locked dependency versions
+├── postcss.config.js                  # PostCSS configuration
+├── tailwind.config.ts                 # Tailwind theme configuration
+├── tsconfig.json                      # TypeScript configuration
+└── wrangler.jsonc                     # Worker and D1 bindings
 ```
 
+Generated or machine-specific folders are intentionally omitted from this
+tree: `node_modules/`, `.next/`, `.open-next/`, `.wrangler/`, and `.git/`.
