@@ -118,6 +118,91 @@ admin_settings
 
 Local and remote D1 are separate databases. A local migration or local admin does not appear in Cloudflare until the equivalent `--remote` command is run.
 
+### Database tables
+
+The application uses four independent tables. Guest records do not contain
+passwords, and admin records are never returned by public guest endpoints.
+
+#### `admins`
+
+Stores administrator login credentials. Admins are created from the terminal.
+
+| Column | Type | Rules | Purpose |
+| --- | --- | --- | --- |
+| `id` | INTEGER | Primary key, auto-increment | Internal admin identifier |
+| `username` | TEXT | Required, unique | Admin login name |
+| `password_hash` | TEXT | Required | PBKDF2 password hash |
+| `password_salt` | TEXT | Required | Unique salt used for password verification |
+| `created_at` | TEXT | Required, defaults to current timestamp | Creation time |
+
+#### `guests`
+
+Stores public registration data, passport information, event progress, and
+account status. Guest passwords are intentionally not stored.
+
+| Column | Type | Rules | Purpose |
+| --- | --- | --- | --- |
+| `id` | INTEGER | Primary key, auto-increment | Internal guest identifier |
+| `passport_id` | TEXT | Required, unique | QR/NFC passport identifier, such as `HYT-2026-0001-a1b2c3d4` |
+| `full_name` | TEXT | Required | Guest name |
+| `email` | TEXT | Required | Guest email address |
+| `phone` | INTEGER | Optional | Guest phone value; imported spreadsheet values are normalized by the app |
+| `organization` | TEXT | Optional | School or company |
+| `guest_type` | TEXT | Required | Selected role, such as Trainee, Trainor, VIP, or Visitor |
+| `course` | TEXT | Optional | Course selected by a trainee or trainor |
+| `purpose` | TEXT | Optional | Purpose supplied by a Visitor |
+| `scan_limit_days` | INTEGER | Optional | Remaining or configured training scan days |
+| `scan_enabled` | BOOLEAN | Required, defaults to TRUE | Whether scanning is enabled |
+| `account_active` | BOOLEAN | Required, defaults to TRUE | Whether the passport account is active |
+| `valid_until` | TEXT | Optional | Expiration date in `YYYY-MM-DD` format |
+| `floors` | TEXT | Required, defaults to `[]` | JSON array of completed floor flags |
+| `completed_count` | INTEGER | Required, defaults to `0` | Number of completed floors |
+| `status` | TEXT | Required, defaults to `Incomplete` | `Incomplete`, `Completed`, or `Reward Claimed` |
+| `registered_at` | TEXT | Required | Registration timestamp |
+| `last_updated` | TEXT | Required | Last guest record update timestamp |
+| `created_at` | TEXT | Required, defaults to current timestamp | Database insertion time |
+
+Indexes:
+
+- `idx_guests_passport_id` speeds up QR, NFC, and passport lookups.
+- `idx_guests_email` speeds up email searches.
+
+#### `scan_logs`
+
+Stores the audit history for guest scans, station stamps, NFC scans, and reward
+claims. The website uses D1 for scan-limit calculations.
+
+| Column | Type | Rules | Purpose |
+| --- | --- | --- | --- |
+| `id` | INTEGER | Primary key, auto-increment | Internal log identifier |
+| `timestamp` | TEXT | Required | Time of the action |
+| `passport_id` | TEXT | Required | Guest passport identifier |
+| `nfc_id` | TEXT | Optional | NFC value when the action came from NFC |
+| `guest_name` | TEXT | Required | Guest name captured in the audit record |
+| `station` | TEXT | Required | Floor or station name |
+| `action` | TEXT | Required | Action such as `Stamped`, `Admin Scan`, or `Reward Claimed` |
+| `scanner_page` | TEXT | Required | Page or scanner that performed the action |
+
+Index:
+
+- `idx_scan_logs_passport_timestamp` supports per-guest scan history and daily limits.
+
+#### `admin_settings`
+
+Stores course settings used when new guests register. This table is the only
+source used by the website for active course categories and course defaults.
+
+| Column | Type | Rules | Purpose |
+| --- | --- | --- | --- |
+| `course` | TEXT | Primary key | Course name and registration category |
+| `scan_limit_days` | INTEGER | Optional | Default training scan limit |
+| `valid_until` | TEXT | Required, defaults to empty text | Course validity date |
+| `active` | BOOLEAN | Required, defaults to TRUE | Whether the course appears during registration |
+| `updated_at` | TEXT | Required, defaults to current timestamp | Last settings update time |
+
+The database has no shared `people` table. `admins` and `guests` are separate
+roles. Only `admins` contain password hashes and salts.
+
 ## Create an administrator
 
 Admins are created from the terminal, not from a public page:
@@ -297,21 +382,88 @@ Before deployment:
 ## Project structure
 
 ```text
-drizzle/
-  0001_create_admins.sql
-  0002_create_guests.sql
-  0003_create_scan_logs.sql
-  0004_create_admin_settings.sql
-scripts/
-  create-admin.mjs
-src/
-  app/                 Next.js pages and API routes
-  components/          Passport, QR, scanner, and admin UI
-  lib/guest-db.ts      D1 guest and scan-log operations
-  lib/sheets-new.ts    D1-facing application helpers
-  lib/sheets.ts        Optional Google Sheets mirror and legacy adapter
-  lib/stations.ts      Event station definitions
-  lib/scanPolicy.ts    Guest scan and validity rules
-  lib/passport-id.ts   QR/NFC passport ID extraction
-wrangler.jsonc         Cloudflare Worker and D1 configuration
+.
+├── drizzle/                         # D1 database migrations
+│   ├── 0001_create_admins.sql
+│   │                                  # Admin usernames and password hashes
+│   ├── 0002_create_guests.sql         # Guest profiles and passport records
+│   ├── 0003_create_scan_logs.sql      # Guest scan audit history
+│   └── 0004_create_admin_settings.sql # Database course settings
+├── public/                           # Static images and branding assets
+│   ├── hyt-global-institute.png       # Institute logo for image contexts
+│   ├── hyt-global-institute.svg       # Scalable institute logo
+│   └── roofdeck.jpg                   # Landing-page background image
+├── scripts/                          # Terminal automation scripts
+│   └── create-admin.mjs               # Creates or resets a terminal-only admin
+├── src/
+│   ├── app/                          # Next.js pages, layouts, and API routes
+│   │   ├── api/                      # Server-side HTTP endpoints
+│   │   │   ├── admin/                # Authenticated administrator endpoints
+│   │   │   │   ├── claim/route.ts     # Marks a completed reward as claimed
+│   │   │   │   ├── guests/route.ts    # Returns the admin guest list
+│   │   │   │   ├── login/route.ts     # Creates an admin session
+│   │   │   │   ├── scan/route.ts      # Processes an admin guest scan
+│   │   │   │   ├── settings/route.ts  # Reads and saves course settings
+│   │   │   │   └── toggle-account/route.ts # Enables or disables a guest
+│   │   │   ├── course-settings/route.ts # Public list of active courses
+│   │   │   ├── passport/[passportId]/route.ts # Public passport lookup
+│   │   │   ├── register/route.ts      # Creates a guest in D1
+│   │   │   └── stamp/route.ts         # Records a floor completion
+│   │   ├── admin/                    # Protected administrator pages
+│   │   │   ├── dashboard/page.tsx      # Guest totals, search, and claiming
+│   │   │   ├── login/
+│   │   │   │   ├── LoginForm.tsx       # Admin username/password form
+│   │   │   │   └── page.tsx            # Admin login page
+│   │   │   ├── scan/
+│   │   │   │   ├── [floor]/page.tsx    # Staff scanner for one floor
+│   │   │   │   └── page.tsx            # General admin QR/NFC scanner
+│   │   │   ├── settings/page.tsx       # Course settings editor
+│   │   │   └── station-codes/page.tsx  # Printable station QR codes
+│   │   ├── complete/[floor]/page.tsx  # Native-camera station completion page
+│   │   ├── passport/[passportId]/page.tsx # Guest digital passport page
+│   │   ├── register/page.tsx           # Guest registration form
+│   │   ├── globals.css                 # Tailwind and global styles
+│   │   ├── head.tsx                    # Document head metadata
+│   │   ├── layout.tsx                  # Root application layout
+│   │   └── page.tsx                    # Public landing page
+│   ├── components/                    # Reusable UI components
+│   │   ├── FloorList.tsx               # Displays completed floor stations
+│   │   ├── Header.tsx                  # Shared application header
+│   │   ├── HomeGate.tsx                # Controls public home entry state
+│   │   ├── LandingCta.tsx              # Landing-page registration/passport CTA
+│   │   ├── NfcPassportWriter.tsx       # Writes a passport URL to NFC
+│   │   ├── PasscodeVerification.tsx    # Confirms sensitive admin actions
+│   │   ├── PassportCard.tsx             # Displays passport details and QR
+│   │   ├── PassportScanner.tsx          # Guest self-scans station QR codes
+│   │   ├── ProfileMenu.tsx              # Shows remembered passport profile
+│   │   ├── ProgressBar.tsx              # Displays floor completion progress
+│   │   ├── QrScanner.tsx                # Camera QR decoding component
+│   │   ├── RememberPassport.tsx          # Stores passport ID on the device
+│   │   ├── ScannerBoundary.tsx           # Error boundary around camera scanning
+│   │   └── StampIcon.tsx                 # Visual stamp/status icon
+│   └── lib/                          # Database, policy, and shared domain logic
+│       ├── accessPolicy.ts            # Guest access rules by role
+│       ├── admin-auth.ts              # Password verification and sessions
+│       ├── admin-db.ts                # Admin credential queries
+│       ├── guest-db.ts                # D1 guest and scan-log operations
+│       ├── passport-id.ts             # QR/NFC passport ID extraction
+│       ├── scanPolicy.ts              # Scan limits and validity rules
+│       ├── sheets-new.ts              # D1-facing application helpers
+│       ├── sheets.ts                  # Optional Google Sheets mirror
+│       ├── stations.ts                # Event station definitions
+│       └── types.ts                   # Shared TypeScript types
+├── .env.local.example                 # Environment variable template
+├── middleware.ts                      # Protects administrator routes
+├── next-env.d.ts                      # Next.js TypeScript declarations
+├── next.config.js                     # Next.js configuration
+├── open-next.config.ts                # OpenNext Cloudflare configuration
+├── package.json                       # Scripts and dependencies
+├── package-lock.json                  # Locked dependency versions
+├── postcss.config.js                  # PostCSS configuration
+├── tailwind.config.ts                 # Tailwind theme configuration
+├── tsconfig.json                      # TypeScript configuration
+└── wrangler.jsonc                     # Worker and D1 bindings
 ```
+
+Generated or machine-specific folders are intentionally omitted from this
+tree: `node_modules/`, `.next/`, `.open-next/`, `.wrangler/`, and `.git/`.
